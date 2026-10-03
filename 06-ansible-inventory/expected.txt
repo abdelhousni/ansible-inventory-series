@@ -1,0 +1,194 @@
+== 1. The tree: is every host where it should be?
+
+$ ansible-inventory --graph
+@all:
+  |--@ungrouped:
+  |  |--jump1
+  |--@app:
+  |  |--app1
+  |  |--app2
+  |--@postgresql:
+  |  |--@db:
+  |  |  |--db1
+  |  |  |--app3
+  |--@backup:
+  |  |--db1
+
+== 2. A group_vars directory that matches no group
+all
+app
+backups
+db
+postgresql
+
+$ ansible-inventory --graph backups
+exit 5:
+[ERROR]: Pattern must be valid group name when using --graph
+
+$ ansible-inventory --host db1
+{
+    "ansible_connection": "local",
+    "ansible_python_interpreter": "{{ ansible_playbook_python }}",
+    "postgresql_server_conf": {
+        "max_connections": 200,
+        "port": 5432
+    },
+    "postgresql_version": "15"
+}
+
+== 3. Where does a value come from?
+
+$ ansible-inventory --graph --vars postgresql
+@postgresql:
+  |--@db:
+  |  |--db1
+  |  |  |--{ansible_connection = local}
+  |  |  |--{ansible_python_interpreter = {{ ansible_playbook_python }}}
+  |  |  |--{postgresql_server_conf = {'port': 5432, 'max_connections': 200}}
+  |  |  |--{postgresql_version = 15}
+  |  |--app3
+  |  |  |--{ansible_connection = local}
+  |  |  |--{ansible_python_interpreter = {{ ansible_playbook_python }}}
+  |  |  |--{postgresql_server_conf = {'port': 5432, 'max_connections': 200}}
+  |  |  |--{postgresql_version = 15}
+  |  |--{postgresql_version = 15}
+  |--{postgresql_server_conf = {'port': 5432, 'max_connections': 200}}
+  |--{postgresql_version = 16}
+
+== 4. --list gives variables per host; --export, per group
+
+$ ansible-inventory --list --yaml --limit db1
+all:
+  children:
+    backup:
+      hosts:
+        db1: {}
+    postgresql:
+      children:
+        db:
+          hosts:
+            db1:
+              ansible_connection: local
+              ansible_python_interpreter: '{{ ansible_playbook_python }}'
+              postgresql_server_conf:
+                max_connections: 200
+                port: 5432
+              postgresql_version: '15'
+
+$ ansible-inventory --list --yaml --limit db1 --export
+all:
+  children:
+    app:
+      vars:
+        podman_firewall:
+        - port: 8080/tcp
+          state: enabled
+        podman_registries_conf:
+          unqualified-search-registries:
+          - registry.example.org
+    backup:
+      hosts:
+        db1: {}
+    postgresql:
+      children:
+        db:
+          hosts:
+            db1: {}
+          vars:
+            postgresql_version: '15'
+      vars:
+        postgresql_server_conf:
+          max_connections: 200
+          port: 5432
+        postgresql_version: '16'
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+
+== 5. --limit: --list obeys it, --graph and --host don't
+
+$ ansible-inventory --graph --limit app
+@all:
+  |--@ungrouped:
+  |  |--jump1
+  |--@app:
+  |  |--app1
+  |  |--app2
+  |--@postgresql:
+  |  |--@db:
+  |  |  |--db1
+  |  |  |--app3
+  |--@backup:
+  |  |--db1
+
+$ ansible-inventory --host db1 --limit app
+{
+    "ansible_connection": "local",
+    "ansible_python_interpreter": "{{ ansible_playbook_python }}",
+    "postgresql_server_conf": {
+        "max_connections": 200,
+        "port": 5432
+    },
+    "postgresql_version": "15"
+}
+
+$ ansible-inventory --list --limit app --output out/app.json
+out/app.json, without _meta:
+{
+    "all": {
+        "children": [
+            "ungrouped",
+            "app",
+            "postgresql",
+            "backup"
+        ]
+    },
+    "app": {
+        "hosts": [
+            "app1",
+            "app2"
+        ]
+    },
+    "postgresql": {
+        "children": [
+            "db"
+        ]
+    }
+}
+
+== 6. The implicit localhost: --host knows it, --list doesn't
+
+$ ansible-inventory --host localhost
+{
+    "ansible_connection": "local",
+    "ansible_python_interpreter": "<the controller python>"
+}
+
+$ ansible-inventory --list --yaml --limit localhost
+{}
+
+== 7. group_vars beside the playbook
+What the playbook sees (out/versions.txt):
+app1: postgresql_version=-, backup_keep=30
+app2: postgresql_version=-, backup_keep=30
+app3: postgresql_version=15, backup_keep=30
+db1: postgresql_version=15, backup_keep=30
+jump1: postgresql_version=-, backup_keep=30
+
+$ ansible-inventory --host db1 --playbook-dir playbooks
+{
+    "ansible_connection": "local",
+    "ansible_python_interpreter": "{{ ansible_playbook_python }}",
+    "backup_keep": 30,
+    "postgresql_server_conf": {
+        "max_connections": 200,
+        "port": 5432
+    },
+    "postgresql_version": "15"
+}
+
+== 8. TOML needs an extra Python library
+
+$ ansible-inventory --list --toml
+exit 1:
+[ERROR]: The Python library "tomli-w" is required when using the TOML output format.

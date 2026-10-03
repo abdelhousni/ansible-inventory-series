@@ -42,6 +42,25 @@ its output with the example's `expected.txt`.
 | Check which user and machine a connection really reached | `setup` with `gather_subset: [user, platform]` | `04-connection-variables/whoami.yml` |
 | Give each host its connection settings | `host_vars/<host>/ansible.yml` | `04-connection-variables/inventory/host_vars/` |
 
+## Environments
+
+| To… | Use | Where |
+|---|---|---|
+| Keep prod and staging apart, chosen with `-i` | one inventory directory per environment, same group names | `05-environments/inventories/` |
+| Keep both environments in one inventory | `prod`/`staging` groups beside functional groups (`app`, `db`) | `05-environments/single/hosts.yml` |
+| Run a play on one environment of a single inventory | `--limit staging`, or `hosts: app:&staging` | `05-environments/run.sh`, `app_staging.yml` |
+| Give the environment's value precedence over a functional group's | rely on name order, or `ansible_group_priority` in the hosts file | `05-environments/precedence/` |
+## Checking what Ansible sees
+
+| To… | Use | Where |
+|---|---|---|
+| Find a host in the wrong group | `ansible-inventory --graph`, or `--graph <group>` for one branch | `06-ansible-inventory/run.sh` |
+| Check that a group exists before blaming its `group_vars/` | `ansible-inventory --graph <group>` fails for an unknown group | `06-ansible-inventory/run.sh` |
+| See which group sets a variable, and which value wins | `ansible-inventory --graph --vars <group>` | `06-ansible-inventory/run.sh` |
+| See the merged variables of one host | `ansible-inventory --host <host>` | `06-ansible-inventory/run.sh` |
+| See variables per group, as they're written | `ansible-inventory --list --export` | `06-ansible-inventory/run.sh` |
+| Dump the inventory as YAML, or to a file | `--list --yaml`, `--list --output <file>` | `06-ansible-inventory/run.sh` |
+| Include the `group_vars/` beside a playbook | `ansible-inventory --playbook-dir <dir>` | `06-ansible-inventory/run.sh` |
 ## Facts and declared variables
 
 | To… | Use | Where |
@@ -85,6 +104,30 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - The local connection ignores `ansible_user` (`04-connection-variables/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
+- In one inventory holding both environments, `hosts: app` runs on prod and
+  staging (`05-environments/run.sh`).
+- Groups at the same depth merge by name: `prod` beats `app`, but `web`
+  beats `prod` (`05-environments/precedence/web-after-prod/`).
+- An environment group's variables reach all its hosts: `db1` gets
+  `app_log_level` from `prod` (`05-environments/single/`).
+- `ansible_group_priority` in `group_vars/` is ignored, and shows up as an
+  ordinary variable (`05-environments/precedence/priority-in-group-vars/`).
+- A misspelled `--limit` only warns about the pattern, then fails with
+  *no hosts to target* (`05-environments/run.sh`).
+- `ansible-inventory --graph` and `--host` ignore `--limit`; `--list` obeys
+  it, and keeps an emptied group in its parent's `children` while dropping
+  the group's own entry (`06-ansible-inventory/`).
+- `--list --yaml` prints a host's variables under the first group it
+  appears in, and `{}` under the others (`06-ansible-inventory/`).
+- `ansible-inventory` shows variables unrendered, such as
+  `"{{ ansible_playbook_python }}"` (`06-ansible-inventory/`).
+- The implicit localhost answers `--host localhost` but is absent from
+  `--list` and `--graph` (`06-ansible-inventory/`).
+- `group_vars/` beside a playbook reach every play's hosts, but
+  `ansible-inventory` shows them only with `--playbook-dir`
+  (`06-ansible-inventory/playbooks/`).
+- `--toml` fails without the `tomli-w` Python library, which ansible-core
+  doesn't install (`06-ansible-inventory/`).
 - With a fact cache, `ansible-inventory --host` shows cached facts as if they
   were inventory variables; `--export` leaves them out, and group variables
   too (`07-facts-or-variables/run.sh`).
@@ -109,3 +152,5 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test drift against real package databases | one container per version, built from images pinned by digest | `07-facts-or-variables/containers/` |
 | Overlay a wrong inventory on the right one | a second `-i` source that adds one variable | `07-facts-or-variables/run.sh`, `pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
+| Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
+| Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |

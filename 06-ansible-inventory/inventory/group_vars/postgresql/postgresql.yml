@@ -1,0 +1,6 @@
+---
+# Read by the postgresql role, for every host of the postgresql group.
+postgresql_version: "16"
+postgresql_server_conf:
+  port: 5432
+  max_connections: 200
