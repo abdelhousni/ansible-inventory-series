@@ -1,0 +1,80 @@
+== 1. The proxmox source alone: its groups, and one guest's variables
+  proxmox_all_lxc: test-lxc.home.arpa test1-lxc.home.arpa test2-lxc.home.arpa
+  proxmox_all_qemu: pxe.home.arpa test1
+  proxmox_all_running: pxe.home.arpa test-lxc.home.arpa
+  proxmox_all_stopped: test1 test1-lxc.home.arpa test2-lxc.home.arpa
+  proxmox_pool_pool1: test1 test1-lxc.home.arpa
+  proxmox_pve2_lxc: test1-lxc.home.arpa test2-lxc.home.arpa
+  proxmox_pve2_qemu: test1
+  proxmox_pve_lxc: test-lxc.home.arpa
+  proxmox_pve_qemu: pxe.home.arpa
+  test1 proxmox_ipconfig0 = {"gw":"10.0.10.1","ip":"10.0.10.101/24"}
+  test1 proxmox_qmpstatus = "stopped"
+  test1 proxmox_status = "stopped"
+  test1 proxmox_tags = "web;staging"
+  test1 proxmox_tags_parsed = ["web","staging"]
+
+== 2. constructed on top: keyed_groups
+  os: test1
+  os_alpine: test2-lxc.home.arpa
+  os_debian: test-lxc.home.arpa test1-lxc.home.arpa
+  os_l26: pxe.home.arpa
+  owner_team_a: test1 test1-lxc.home.arpa
+  status_running: pxe.home.arpa test-lxc.home.arpa
+  status_stopped: test1 test1-lxc.home.arpa test2-lxc.home.arpa
+  tag_db: test1-lxc.home.arpa
+  tag_dhcp: pxe.home.arpa
+  tag_infra: pxe.home.arpa
+  tag_prod: test-lxc.home.arpa test1-lxc.home.arpa
+  tag_staging: test1
+  tag_untagged: test2-lxc.home.arpa
+  tag_web: test-lxc.home.arpa test1
+
+== 3. The same keyed groups with the defaults
+  _os_: test1
+  _os_alpine: test2-lxc.home.arpa
+  _os_debian: test-lxc.home.arpa test1-lxc.home.arpa
+  _os_l26: pxe.home.arpa
+  raw_db: test1-lxc.home.arpa
+  raw_dhcp: pxe.home.arpa
+  raw_infra: pxe.home.arpa
+  raw_prod: test-lxc.home.arpa test1-lxc.home.arpa
+  raw_staging: test1
+  raw_web: test-lxc.home.arpa test1
+  tag_: test2-lxc.home.arpa
+  tag_db: test1-lxc.home.arpa
+  tag_dhcp: pxe.home.arpa
+  tag_infra: pxe.home.arpa
+  tag_prod: test-lxc.home.arpa test1-lxc.home.arpa
+  tag_staging: test1
+  tag_web: test-lxc.home.arpa test1
+
+== 4. Conditional groups
+  local_domain: pxe.home.arpa test-lxc.home.arpa test1-lxc.home.arpa test2-lxc.home.arpa
+  prod_down: test1-lxc.home.arpa
+  web_prod: test-lxc.home.arpa
+
+== 5. compose: ansible_host from the IP in the guest's config
+  --list wraps values from the API: {"proxmox_name":{"__ansible_unsafe":"test1"},"ansible_host":{"__ansible_unsafe":"10.0.10.101"},"owner":"team-a"}
+  pxe.home.arpa: 10.0.10.100
+  test-lxc.home.arpa: 10.0.10.102
+  test1-lxc.home.arpa: 10.0.10.103
+  test1: 10.0.10.101
+  test2-lxc.home.arpa: 10.0.10.104
+  --host test1 prints: "10.0.10.101"
+
+== 6. The same options on the proxmox plugin: no group from group_vars/
+  os: test1
+  os_alpine: test2-lxc.home.arpa
+  os_debian: test-lxc.home.arpa test1-lxc.home.arpa
+  os_l26: pxe.home.arpa
+  status_running: pxe.home.arpa test-lxc.home.arpa
+  status_stopped: test1 test1-lxc.home.arpa test2-lxc.home.arpa
+  tag_db: test1-lxc.home.arpa
+  tag_dhcp: pxe.home.arpa
+  tag_infra: pxe.home.arpa
+  tag_prod: test-lxc.home.arpa test1-lxc.home.arpa
+  tag_staging: test1
+  tag_untagged: test2-lxc.home.arpa
+  tag_web: test-lxc.home.arpa test1
+  test1 owner = team-a

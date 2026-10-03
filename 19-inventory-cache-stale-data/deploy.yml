@@ -1,0 +1,8 @@
+---
+- name: Deploy the application
+  hosts: app
+  gather_facts: false
+  tasks:
+    - name: Stand for a deployment
+      ansible.builtin.debug:
+        msg: "deploying to {{ inventory_hostname }}"

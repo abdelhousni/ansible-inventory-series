@@ -1,0 +1,14 @@
+---
+- name: Configure the web VMs
+  hosts: web
+  gather_facts: false
+  tasks:
+    - name: Write what each VM received
+      ansible.builtin.copy:
+        content: |
+          groups: {{ group_names | join(',') }}
+          ansible_host: {{ ansible_host }}, vm_cpus: {{ vm_cpus }}, vm_manager: {{ vm_manager }}
+          web_port (group_vars/web/): {{ web_port | default('undefined') }}
+          ansible_connection (group_vars/all/): {{ ansible_connection }}
+        dest: "{{ playbook_dir }}/out/web/{{ inventory_hostname }}.txt"
+        mode: "0644"

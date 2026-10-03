@@ -1,0 +1,49 @@
+== 1. Before the run, the inventory holds only the manager
+  @all:
+    |--@ungrouped:
+    |--@managers:
+    |  |--manager1
+
+== 2. One run: provision, add_host, configure
+  site.yml: exit 0
+    manager created web01: 2 cpus, 4096 MB, 192.0.2.10
+    manager created web02: 2 cpus, 4096 MB, 192.0.2.11
+    manager created web03: 2 cpus, 4096 MB, 192.0.2.12
+    configured web01
+    configured web02
+    configured web03
+  What web01 received:
+    groups: new_vms,web
+    ansible_host: 192.0.2.10, vm_cpus: 2, vm_manager: manager1
+    web_port (group_vars/web/): 8080
+    ansible_connection (group_vars/all/): local
+
+== 3. After the run, nothing remains: add_host changes the in-memory inventory only
+  @all:
+    |--@ungrouped:
+    |--@managers:
+    |  |--manager1
+  configure.yml: exit 0
+    [WARNING]: Could not match supplied host pattern, ignoring: web
+    skipping: no hosts matched
+
+== 4. --limit applies to the added hosts too
+  site.yml --limit manager1: exit 0
+    skipping: no hosts matched
+    manager created web01: 2 cpus, 4096 MB, 192.0.2.10
+    manager created web02: 2 cpus, 4096 MB, 192.0.2.11
+    manager created web03: 2 cpus, 4096 MB, 192.0.2.12
+  site.yml --limit manager1,web02: exit 0
+    [WARNING]: Could not match supplied host pattern, ignoring: web02
+    manager created web01: 2 cpus, 4096 MB, 192.0.2.10
+    manager created web02: 2 cpus, 4096 MB, 192.0.2.11
+    manager created web03: 2 cpus, 4096 MB, 192.0.2.12
+    configured web02
+  site.yml --limit web*: exit 1
+    [WARNING]: Could not match supplied host pattern, ignoring: web*
+    [ERROR]: Specified inventory, host pattern and/or --limit leaves us with no hosts to target.
+
+== 5. add_host runs once per play, not once per host, unless looped
+  exit 0
+  'ansible_play_hosts: [''manager1'', ''manager2'', ''vm-of-manager1'']'
+  'without_loop: [''vm-of-manager1''], with_loop: [''vm-of-manager1'', ''vm-of-manager2'']'

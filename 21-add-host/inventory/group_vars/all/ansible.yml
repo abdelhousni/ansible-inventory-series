@@ -1,0 +1,4 @@
+---
+# The lab runs every host locally, the VMs added during the run included.
+ansible_connection: local
+ansible_python_interpreter: "{{ ansible_playbook_python }}"

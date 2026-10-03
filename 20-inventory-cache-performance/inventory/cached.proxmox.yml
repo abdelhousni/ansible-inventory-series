@@ -1,0 +1,13 @@
+---
+# The post-filter inventory, its API responses kept for an hour in out/cache/.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18200
+user: ansible@pve
+exclude_nodes: true
+want_post_filter_facts: true
+filters:
+  - proxmox_tags == 'web'
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: out/cache
+cache_timeout: 3600

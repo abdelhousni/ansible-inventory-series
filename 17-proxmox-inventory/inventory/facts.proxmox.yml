@@ -1,0 +1,21 @@
+---
+# Each guest's configuration as variables, ansible_host composed from it, a group per tag.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+exclude_nodes: true
+want_facts: true
+filters:
+  - proxmox_name != ''
+  - not proxmox_template
+compose:
+  # The guest agent's first address if it reports one, else the static IP in
+  # the configuration: cloud-init's ipconfig0 for a VM, net0 for a container.
+  ansible_host: >-
+    (proxmox_agent_interfaces | default([]) | rejectattr('name', 'eq', 'lo')
+     | map(attribute='ip-addresses') | flatten | first
+     | default(proxmox_ipconfig0.ip | default(proxmox_net0.ip)))
+    | split('/') | first
+keyed_groups:
+  - key: proxmox_tags_parsed | default([])
+    prefix: tag

@@ -1,0 +1,29 @@
+---
+- name: Each manager adds the VM it created
+  hosts: managers
+  gather_facts: false
+  tasks:
+    - name: Add one VM per manager, without a loop
+      ansible.builtin.add_host:
+        name: "vm-of-{{ inventory_hostname }}"
+        groups: without_loop
+
+    - name: Show that the added VM joined the play's hosts
+      ansible.builtin.debug:
+        msg: "ansible_play_hosts: {{ ansible_play_hosts }}"
+      run_once: true
+
+    - name: Add one VM per manager, looping over the managers
+      ansible.builtin.add_host:
+        name: "vm-of-{{ item }}"
+        groups: with_loop
+        vm_manager: "{{ item }}"
+      loop: "{{ groups['managers'] }}"
+
+- name: Show what was added
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Print each group's hosts
+      ansible.builtin.debug:
+        msg: "without_loop: {{ groups['without_loop'] }}, with_loop: {{ groups['with_loop'] }}"

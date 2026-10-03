@@ -139,6 +139,15 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## The inventory cache
+
+| Problem | Feature | Where |
+|---|---|---|
+| Keep a plugin's inventory between runs | `cache_plugin: ansible.builtin.jsonfile` with `cache_connection`; the default `memory` lasts one run | `19-inventory-cache-stale-data/sources/jsonfile.cmdb.yml` |
+| Bound how stale a cached inventory can be | `cache_timeout` (seconds, default 3600), checked against the cache file's age | `19-inventory-cache-stale-data/sources/short.cmdb.yml` |
+| Share one cache directory between several sources | same `cache_connection` and `cache_prefix`: one file per plugin and configuration file path | `19-inventory-cache-stale-data/sources/dc1.cmdb.yml` |
+| Run a play on the source's current hosts, not the cached ones | `ansible-playbook --flush-cache` | `19-inventory-cache-stale-data/run.sh` |
+
 ## Foreman and Satellite
 
 | Problem | Feature | Where |
@@ -149,6 +158,60 @@ its output with the example's `expected.txt`.
 | Groups by location with the Hosts API | `keyed_groups` on `foreman_location_name` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
 | Short host names instead of FQDNs | `hostnames: [name.split('.')[0]]` | `16-foreman-inventory/inventory/` |
 | Stop asking Foreman on every run | `cache: true` with `cache_plugin: ansible.builtin.jsonfile`; `--flush-cache` to ask again | `16-foreman-inventory/inventory/cached.foreman.yml` |
+
+## Dynamic inventory from Proxmox VE
+
+| To… | Use | Where |
+|---|---|---|
+| Make each Proxmox guest a host | `community.proxmox.proxmox`, a `*.proxmox.yml` file | `17-proxmox-inventory/inventory/guests.proxmox.yml` |
+| Target guests by node, type, status or pool | the plugin's groups: `proxmox_<node>_<type>`, `proxmox_all_running`, `proxmox_pool_<pool>` | `17-proxmox-inventory/run.sh` |
+| Keep only some guests | `filters:` on `proxmox_status` and `proxmox_tags`, without `want_facts` | `17-proxmox-inventory/inventory/running-test.proxmox.yml` |
+| Get each guest's configuration as variables | `want_facts: true`, or `want_post_filter_facts: true` for fewer API calls | `17-proxmox-inventory/inventory/facts.proxmox.yml`, `post-filter-facts.proxmox.yml` |
+| Set `ansible_host` from the guest agent or the static IP | `compose:` over `proxmox_agent_interfaces`, `proxmox_ipconfig0`, `proxmox_net0` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| A group per Proxmox tag | `keyed_groups:` on `proxmox_tags_parsed` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| Fail when a source doesn't parse | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true` (`any_unparsed_is_failed`) | `17-proxmox-inventory/run.sh` |
+
+## Constructed groups and variables
+
+| Problem | Feature | Where |
+|---|---|---|
+| Turn Proxmox VE guests into hosts | `community.proxmox.proxmox` in a `*.proxmox.yml` source, `want_facts: true` | `18-constructed/inventory/10-pve.proxmox.yml` |
+| One group per tag, and one for guests without tags | `keyed_groups` on a list, `default([''])` with `default_value` | `18-constructed/inventory/20-constructed.yml` |
+| Group names without a leading `_` when the prefix is empty | `leading_separator: false` (for the whole source) | `18-constructed/inventory/20-constructed.yml` |
+| `key` alone instead of `key_` for an empty value | a dict key with `trailing_separator: false` | `18-constructed/inventory/20-constructed.yml` |
+| Group hosts by a condition on their variables | `groups:` with Jinja2 tests (`subset`, `eq`, `search`) | `18-constructed/inventory/20-constructed.yml` |
+| Set `ansible_host` from an IP in the guest's config | `compose`, also to name an expression reused by `groups:` | `18-constructed/inventory/20-constructed.yml` |
+| Group on a variable from `group_vars/` of a group another source built | a separate `constructed` source with `use_vars_plugins: true` | `18-constructed/inventory/group_vars/proxmox_pool_pool1/` |
+| Skip a separate source when only the plugin's own data counts | `keyed_groups`, `groups`, `compose` on the dynamic plugin itself | `18-constructed/direct/` |
+
+## Inventory cache and API load
+
+| Problem | Feature | Where |
+|---|---|---|
+| Count the API requests one inventory run makes | a mock API that logs each request, emptied before each run | `20-inventory-cache-performance/run.sh`, `mock/server.py` |
+| Read guest facts with fewer requests | `want_post_filter_facts: true` instead of `want_facts: true` | `20-inventory-cache-performance/inventory/post-filter-facts.proxmox.yml` |
+| Skip the API on the next runs | `cache: true`, `cache_plugin: ansible.builtin.jsonfile`, `cache_connection:` | `20-inventory-cache-performance/inventory/cached.proxmox.yml` |
+| Bound how old the cached inventory may get | `cache_timeout:` in seconds (3600 by default, 0 for never) | `20-inventory-cache-performance/inventory/cached.proxmox.yml` |
+| Stop waiting for a slow inventory API | an outer limit such as `timeout 2 ansible-inventory …`: the plugin has no timeout option | `20-inventory-cache-performance/run.sh` |
+
+## Hosts created during the run
+
+| Problem | Feature | Where |
+|---|---|---|
+| Configure VMs in the same run that creates them | `ansible.builtin.add_host` in the provisioning play, a play on the new group after it | `21-add-host/site.yml` |
+| Give an added host groups and variables | `groups:` and any other key of `add_host` (`ansible_host`, …) | `21-add-host/provision.yml` |
+| Give a group created by `add_host` its variables | `group_vars/<group>/` in the inventory: it applies to the added hosts | `21-add-host/inventory/group_vars/web/` |
+| Add one host per host of the play | `add_host` with a `loop`, over `groups['<group>']` | `21-add-host/pitfalls/once-per-play/add.yml` |
+
+## Groups built during a run
+
+| To… | Use | Where |
+|---|---|---|
+| Put hosts in a group named after a fact, during the play | `group_by: key: os_{{ ansible_facts.os_family }}` | `22-group-by/group-by.yml` |
+| Nest the groups group_by builds | `parents:` on `group_by` | `22-group-by/group-by.yml` |
+| Give a dynamic group its variables | `group_vars/<group>/` in the inventory; they apply from the next task | `22-group-by/inventory/group_vars/` |
+| Keep fact values with spaces or dashes out of group names | `regex_replace('\\W', '_')` on the value | `22-group-by/group-by.yml` |
+| Have the same groups at parse time, usable with `--limit` | constructed's `keyed_groups` over cached facts | `22-group-by/keyed/constructed.yml` |
 
 ## Writing an inventory plugin
 
@@ -275,6 +338,16 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A play looping over a list of hosts in a variable runs one host after
   another, and `--limit <host>` skips it: only `--limit <manager>` runs it,
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
+- A list key that's undefined for a host is skipped without a word under
+  `strict: false`; an empty item in it gives a group named `tag_` without
+  `default_value` (`18-constructed/variants/defaults.yml`).
+- With an empty prefix, keyed groups start with `_` (`_os_debian`) unless
+  `leading_separator: false` (`18-constructed/variants/defaults.yml`).
+- The same `keyed_groups` on the proxmox plugin can't see `group_vars/`:
+  `owner_team_a` is missing, although the host gets `owner` (`18-constructed/direct/`).
+- `ansible-inventory --list` prints the plugin's values, and values composed
+  from them, as `{"__ansible_unsafe": …}`; `--host` prints plain strings
+  (`18-constructed/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
 - A static inventory copied from a CMDB keeps a retired host and an old
@@ -292,6 +365,21 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - Strings set by a custom inventory plugin are untrusted: `--list` prints
   them as `{"__ansible_unsafe": …}`, an inventory script's as plain strings
   (`15-single-source-of-truth/run.sh`).
+- An inventory cache in the default `memory` plugin lasts one run: the next
+  run calls the source again (`19-inventory-cache-stale-data/run.sh`).
+- An expired cache is not a fallback: with the source down, the plugin
+  returns no hosts and `ansible-inventory` exits 0, although the cache file
+  is still there (`19-inventory-cache-stale-data/run.sh`).
+- The cache key is the plugin name and the configuration file's absolute
+  path: a copy of the file elsewhere misses the cache, `./` or an absolute
+  path doesn't (`19-inventory-cache-stale-data/run.sh`).
+- A play on a cached inventory runs on a host the source has removed
+  (`19-inventory-cache-stale-data/deploy.yml`).
+- With `cache: true` and no `cache_plugin`, the inventory cache takes the
+  fact cache settings (`ANSIBLE_CACHE_PLUGIN`, `fact_caching`): set for facts,
+  they make the inventory persistent and stale too (`19-inventory-cache-stale-data/run.sh`).
+- `--flush-cache` clears the facts of the hosts in the refreshed inventory
+  only: a removed host's cached facts stay (`19-inventory-cache-stale-data/run.sh`).
 - Inventory files in a directory sort as text too: `9-override.yml` loads
   after `10-hosts.yml` and wins (`14-several-inventories/name-order/`).
 - With `-i dir1 -i dir2`, each directory's `group_vars/` applies to the hosts
@@ -320,6 +408,44 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A Foreman source whose name doesn't end in `foreman.yml` or `foreman.yaml`
   is skipped with warnings, and the inventory is empty
   (`16-foreman-inventory/pitfalls/foreman-inventory.yml`).
+- One guest with an empty name makes the Proxmox source fail as a whole:
+  no host at all, warnings, exit code 0 (`17-proxmox-inventory/pitfalls/unnamed.proxmox.yml`).
+- `plugin: community.general.proxmox` is redirected to community.proxmox
+  with a deprecation warning, then refused by the plugin's own `choices`:
+  empty inventory, exit code 0 (`17-proxmox-inventory/pitfalls/redirect.proxmox.yml`).
+- Two guests with the same name make one host: the variables of the last
+  one read, the groups of both (`17-proxmox-inventory/run.sh`).
+- A filter on a fact that only `want_facts` provides errors for every guest
+  and keeps them all, with a warning each (`17-proxmox-inventory/pitfalls/tags-parsed.proxmox.yml`).
+- `cache: true` alone uses the `memory` cache plugin: the cache dies with
+  the process, and every run makes all its requests again
+  (`20-inventory-cache-performance/pitfalls/memory-cache.proxmox.yml`).
+- `want_facts` reads the configuration of every guest, filtered out or not:
+  407 requests against 207 with `want_post_filter_facts`, for the same 60
+  hosts (`20-inventory-cache-performance/run.sh`).
+- With a password, the Proxmox plugin asks for a ticket even when its cache
+  is warm: with the API down the source fails and the inventory is empty,
+  exit 0; with an API token it reads the cache (`20-inventory-cache-performance/run.sh`).
+- The Proxmox plugin sets no timeout on its requests: a slow API makes
+  `ansible-inventory` wait as long as it takes (`20-inventory-cache-performance/pitfalls/slow-api.proxmox.yml`).
+- `add_host` without a loop runs once per play, on the first host, not once
+  per host (`21-add-host/pitfalls/once-per-play/`).
+- A host added by `add_host` joins `ansible_play_hosts` of the play that
+  added it, though the play's tasks don't run on it
+  (`21-add-host/pitfalls/once-per-play/`).
+- Hosts added by `add_host` stay out of a run with `--limit <manager>`; a
+  `--limit` naming them warns *Could not match* but still lets them in, and a
+  `--limit` naming only them fails with exit 1 (`21-add-host/run.sh`).
+- `add_host` leaves nothing behind: `ansible-inventory` and the next run
+  don't see the added hosts (`21-add-host/run.sh`).
+- `group_by` keeps a space in the group name in ansible-core 2.21.4, though
+  its docs and its result say dash: the group can't be targeted
+  (`22-group-by/pitfalls/spaces.yml`).
+- A host whose `group_by` key fails is in no group and leaves the run
+  (`22-group-by/pitfalls/no-default.yml`).
+- `--limit` can't name a group `group_by` builds, and with `--limit` only the
+  limited hosts are grouped; the groups are gone after the run
+  (`22-group-by/run.sh`).
 - A required plugin option set to an empty string passes Ansible's
   `required` check: the plugin has to reject it itself
   (`23-writing-an-inventory-plugin/run.sh`).
@@ -341,9 +467,17 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Test cache expiry without flaky timings | a 5-second `cache_timeout`, `sleep 6`, outcomes printed rather than times | `19-inventory-cache-stale-data/run.sh` |
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
+| Test a dynamic inventory plugin without its server | a small Python mock of the API, started and stopped by `run.sh` | `18-constructed/mock/pve.py` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
 | Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
+| Test an inventory plugin without its server | a mock of the API in Python, serving recorded responses and logging each request | `17-proxmox-inventory/mock/` |
+| Show what a cache saves without flaky timings | a fixed latency per request in the mock; wall time checked as a lower bound and a ratio | `20-inventory-cache-performance/run.sh` |
+| Test a large inventory without a large fixture in Git | a script generating the mock's responses at each run | `20-inventory-cache-performance/mock/generate.py` |
+| Expire a cache without waiting | `touch -d '2 hours ago'` on the cache file | `20-inventory-cache-performance/run.sh` |
+| Show which hosts each play reached | each play writes one file per host in `out/`, `run.sh` lists them | `21-add-host/run.sh` |
+| Give local hosts different facts | recorded facts copied into a `jsonfile` fact cache with `fact_caching_timeout = 0` | `22-group-by/facts/`, `ansible.cfg` |
 | Unit-test an inventory plugin without a server | pytest, `unittest.mock.patch` on `open_url`, `inventory_loader.get()` with a `conftest.py` that sets up the collection loader | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/tests/unit/` |
 | Test a token-protected API | a mock that answers 401 without the test-only token and logs whether each request had it | `23-writing-an-inventory-plugin/mock/cmdb.py` |

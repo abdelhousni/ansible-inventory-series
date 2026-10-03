@@ -1,0 +1,6 @@
+---
+# A mock whose /nodes answers 3 seconds late: the plugin has no timeout and waits.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18201
+user: ansible@pve
+exclude_nodes: true

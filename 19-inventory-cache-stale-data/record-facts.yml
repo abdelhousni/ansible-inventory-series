@@ -1,0 +1,10 @@
+---
+# Stands for a run that gathered facts: stores one fact per host in the fact cache.
+- name: Record a fact for every host
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Store the host's owner as a cached fact
+      ansible.builtin.set_fact:
+        recorded_owner: "{{ cmdb_owner }}"
+        cacheable: true

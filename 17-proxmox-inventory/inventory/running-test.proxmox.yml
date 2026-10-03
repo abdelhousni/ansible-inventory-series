@@ -1,0 +1,10 @@
+---
+# Running guests tagged test, from the list's fields alone (no want_facts).
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+exclude_nodes: true
+filters:
+  - proxmox_name != ''
+  - proxmox_status == 'running'
+  - "'test' in (proxmox_tags | default('')).split(';')"
