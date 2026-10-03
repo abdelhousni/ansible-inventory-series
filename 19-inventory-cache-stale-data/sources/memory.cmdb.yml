@@ -1,0 +1,6 @@
+---
+# cache: true with no cache_plugin: the default, ansible.builtin.memory, unless
+# the fact cache settings name another one.
+plugin: cmdb
+url: http://127.0.0.1:18190/hosts.json
+cache: true

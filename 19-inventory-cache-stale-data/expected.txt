@@ -1,0 +1,35 @@
+== 1. memory or jsonfile: the CMDB changes between two runs
+  memory, CMDB v1: exit 0, app1 app2 db1
+  jsonfile, CMDB v1: exit 0, app1 app2 db1
+  memory, CMDB v2: exit 0, app1 app3 db1
+  jsonfile, CMDB v2: exit 0, app1 app2 db1
+  out/cache: ansible_inventory_s1_cmdb_k<hash>
+
+== 2. cache_timeout: 5 seconds
+  CMDB v1, cache filled: exit 0, app1 app2 db1
+  CMDB v2, at once: exit 0, app1 app2 db1
+  CMDB v2, 6 seconds later: exit 0, app1 app3 db1
+  CMDB down, cache 6 seconds old: exit 0, no hosts
+    cannot read the CMDB at http://127.0.0.1:18190/hosts.json
+  out/short still holds: ansible_inventory_s1_cmdb_k<hash>
+
+== 3. Two sources, one cache_connection and cache_prefix
+  dc1: exit 0, app1 app2 db1
+  dc2: exit 0, web9
+  out/shared: cmdb_s1_cmdb_k<hash> cmdb_s1_cmdb_k<hash>
+  dc1, CMDB down: exit 0, app1 app2 db1
+  dc2, CMDB down: exit 0, web9
+  a copy of dc1's file, CMDB down: exit 0, no hosts
+  dc1 as ./sources/dc1.cmdb.yml, CMDB down: exit 0, app1 app2 db1
+  dc1 by its absolute path, CMDB down: exit 0, app1 app2 db1
+
+== 4. app2 is decommissioned, the cache still has it
+  CMDB v1, cache filled: exit 0, app1 app2 db1
+  ansible-playbook deploy.yml (cache): deploying to app1 deploying to app2
+  ansible-playbook deploy.yml --flush-cache: deploying to app1 deploying to app3
+
+== 5. The fact cache settings and the inventory cache
+  memory.cmdb.yml, fact cache in jsonfile, CMDB v1: exit 0, app1 app2 db1
+  out/facts: ansible_inventory_s1_cmdb_k<hash> s1_app1 s1_app2 s1_db1
+  memory.cmdb.yml, CMDB v2: exit 0, app1 app2 db1
+  after ansible-playbook --flush-cache, CMDB v2: ansible_inventory_s1_cmdb_k<hash> s1_app1 s1_app2 s1_app3

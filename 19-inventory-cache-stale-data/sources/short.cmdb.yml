@@ -1,0 +1,8 @@
+---
+# The cache in JSON files under out/short, valid for 5 seconds.
+plugin: cmdb
+url: http://127.0.0.1:18190/hosts.json
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: out/short
+cache_timeout: 5

@@ -24,6 +24,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`16-foreman-inventory/`](16-foreman-inventory/) | [Item 16: The Foreman/Satellite dynamic inventory plugin](https://til.housni.eu/ansible/foreman-dynamic-inventory-plugin.html) |
 | [`17-proxmox-inventory/`](17-proxmox-inventory/) | [Item 17: The Proxmox inventory plugin, guests as hosts](https://til.housni.eu/ansible/inventory-proxmox-plugin-guests-as-hosts.html) |
 | [`18-constructed/`](18-constructed/) | [Item 18: ansible.builtin.constructed: keyed_groups, groups and compose on top of another source](https://til.housni.eu/ansible/inventory-constructed-keyed-groups-compose.html) |
+| [`19-inventory-cache-stale-data/`](19-inventory-cache-stale-data/) | [Item 19: When the inventory cache lies: stale hosts, cache_timeout and --flush-cache](https://til.housni.eu/ansible/inventory-cache-stale-data.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -77,13 +78,13 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 14 connect
-  to every host locally. 15 to 18 start their own mock APIs, small Python
-  servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160, a
-  Proxmox VE on 18170 and another on 18180), and stop them when they end.
-  04 and 07 start their targets as Docker containers on the local machine,
-  from images pinned by digest, and 04 generates an SSH key pair for each
-  run in its `out/` directory.
+- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 14 connect to
+  every host locally. 15 to 19 start their own mock APIs, small Python servers
+  on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160, Proxmox VE on
+  18170 and 18180, a CMDB on 18190), and stop them when they end. 04 and 07
+  start their targets as Docker containers on the local machine, from images
+  pinned by digest, and 04 generates an SSH key pair for each run in its
+  `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 
