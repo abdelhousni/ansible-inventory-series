@@ -2,8 +2,9 @@
 
 Companion examples for the "Ansible inventory from scratch" series on
 til.housni.eu (abdelhousni/til, `ansible/*.md`). Each example is `NN-name/`
-with a `run.sh`, an `expected.txt`, a README, a CI matrix entry and a row in
-the root README table.
+with a `run.sh`, an `expected.txt`, a README, a CI matrix entry, a row in
+the root README table, and rows in `INDEX.md` for each technique and
+pitfall it shows. CI fails if an example directory has no row there.
 
 ## Write, review and refactor with the Lola Ansible skills
 
