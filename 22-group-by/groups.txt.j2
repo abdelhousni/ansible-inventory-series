@@ -1,0 +1,3 @@
+{% for host in ansible_play_hosts_all | sort %}
+{{ host }}: {{ hostvars[host].group_names | sort | join(' ') }}
+{% endfor %}

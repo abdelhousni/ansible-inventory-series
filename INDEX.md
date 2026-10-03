@@ -139,6 +139,16 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## Groups built during a run
+
+| To… | Use | Where |
+|---|---|---|
+| Put hosts in a group named after a fact, during the play | `group_by: key: os_{{ ansible_facts.os_family }}` | `22-group-by/group-by.yml` |
+| Nest the groups group_by builds | `parents:` on `group_by` | `22-group-by/group-by.yml` |
+| Give a dynamic group its variables | `group_vars/<group>/` in the inventory; they apply from the next task | `22-group-by/inventory/group_vars/` |
+| Keep fact values with spaces or dashes out of group names | `regex_replace('\\W', '_')` on the value | `22-group-by/group-by.yml` |
+| Have the same groups at parse time, usable with `--limit` | constructed's `keyed_groups` over cached facts | `22-group-by/keyed/constructed.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -281,6 +291,15 @@ Each of these is shown, with its output in the example's `expected.txt`:
   other sources load, unlike in `group_vars/`
   (`14-several-inventories/pitfalls/readme/`).
 
+- `group_by` keeps a space in the group name in ansible-core 2.21.4, though
+  its docs and its result say dash: the group can't be targeted
+  (`22-group-by/pitfalls/spaces.yml`).
+- A host whose `group_by` key fails is in no group and leaves the run
+  (`22-group-by/pitfalls/no-default.yml`).
+- `--limit` can't name a group `group_by` builds, and with `--limit` only the
+  limited hosts are grouped; the groups are gone after the run
+  (`22-group-by/run.sh`).
+
 ## Testing patterns worth reusing
 
 | To… | How | Where |
@@ -299,3 +318,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
+| Give local hosts different facts | recorded facts copied into a `jsonfile` fact cache with `fact_caching_timeout = 0` | `22-group-by/facts/`, `ansible.cfg` |

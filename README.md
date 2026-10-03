@@ -21,6 +21,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
 | [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
+| [`22-group-by/`](22-group-by/) | [Item 22: Groups from facts with group_by](https://til.housni.eu/ansible/inventory-group-by.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -70,7 +71,7 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 13 connect to every
+- **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 13 and 22 connect to every
   host locally. 15 starts its own mock CMDB, Python's `http.server` on
   `127.0.0.1:18150`, and stops it when it ends. 04 and 07 start their targets as Docker containers on the
   local machine, from images pinned by digest, and 04 generates an SSH key

@@ -1,0 +1,51 @@
+---
+- name: Group the hosts by operating system
+  hosts: all
+  gather_facts: false  # the facts come from the fact cache
+  vars:
+    group_os_family: "{{ ansible_facts.os_family | default('unknown') }}"
+    group_distribution: "{{ ansible_facts.distribution | default('unknown') | regex_replace('\\W', '_') | lower }}"
+  tasks:
+    - name: Record the package manager before group_by
+      ansible.builtin.copy:
+        content: "{{ package_manager | default('undefined') }}\n"
+        dest: "{{ playbook_dir }}/out/before/{{ inventory_hostname }}"
+        mode: "0644"
+      delegate_to: localhost
+
+    - name: Add each host to the group of its OS family
+      ansible.builtin.group_by:
+        key: os_{{ group_os_family }}
+        parents: by_os
+
+    - name: Add each host to the group of its distribution and major version
+      ansible.builtin.group_by:
+        key: "{{ group_distribution }}{{ ansible_facts.distribution_major_version | default('') }}"
+        parents: os_{{ group_os_family }}
+
+    - name: Record the package manager after group_by
+      ansible.builtin.copy:
+        content: "{{ package_manager | default('undefined') }}\n"
+        dest: "{{ playbook_dir }}/out/after/{{ inventory_hostname }}"
+        mode: "0644"
+      delegate_to: localhost
+
+    - name: Record the groups group_by built
+      ansible.builtin.template:
+        src: groups.txt.j2
+        dest: "{{ playbook_dir }}/out/groups.txt"
+        mode: "0644"
+      run_once: true
+      delegate_to: localhost
+
+- name: Configure the Red Hat family
+  hosts: os_RedHat
+  gather_facts: false
+  tasks:
+    - name: Record the hosts this play runs on
+      ansible.builtin.copy:
+        content: "{{ ansible_play_hosts_all | sort | join(' ') }}\n"
+        dest: "{{ playbook_dir }}/out/os_RedHat.txt"
+        mode: "0644"
+      run_once: true
+      delegate_to: localhost

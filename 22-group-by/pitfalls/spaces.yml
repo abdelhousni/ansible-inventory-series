@@ -1,0 +1,30 @@
+---
+- name: Group lb1 by distribution name, unsanitised
+  hosts: lb1
+  gather_facts: false
+  tasks:
+    - name: Add the host to the group of its distribution
+      ansible.builtin.group_by:
+        key: distro_{{ ansible_facts.distribution }}
+      register: spaces_group
+
+    - name: Record the group group_by reports, and the group the host is in
+      ansible.builtin.copy:
+        content: |
+          group_by reports: {{ spaces_group.add_group }}
+          group_names: {{ group_names | select('match', 'distro_') | map('to_json') | join(' ') }}
+        dest: "{{ playbook_dir }}/../out/spaces.txt"
+        mode: "0644"
+      delegate_to: localhost
+
+- name: Target the group group_by reports
+  hosts: distro_openSUSE-Leap
+  gather_facts: false
+  tasks:
+    - name: Record the hosts this play runs on
+      ansible.builtin.copy:
+        content: "{{ ansible_play_hosts_all | sort | join(' ') }}\n"
+        dest: "{{ playbook_dir }}/../out/spaces-play.txt"
+        mode: "0644"
+      run_once: true
+      delegate_to: localhost
