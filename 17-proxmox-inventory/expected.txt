@@ -1,0 +1,64 @@
+== 1. Guests and nodes as hosts, in the plugin's groups
+  @all:
+    |--@ungrouped:
+    |--@proxmox_all_lxc:
+    |  |--test-lxc.home.arpa
+    |  |--test1-lxc.home.arpa
+    |--@proxmox_all_qemu:
+    |  |--pxe.home.arpa
+    |  |--test1
+    |--@proxmox_all_running:
+    |  |--test-lxc.home.arpa
+    |  |--pxe.home.arpa
+    |--@proxmox_all_stopped:
+    |  |--test1-lxc.home.arpa
+    |  |--test-lxc.home.arpa
+    |  |--test1
+    |--@proxmox_all_templates:
+    |  |--debian-13-tmpl
+    |--@proxmox_nodes:
+    |  |--pve
+    |  |--pve2
+    |--@proxmox_pve_lxc:
+    |  |--test-lxc.home.arpa
+    |--@proxmox_pve_qemu:
+    |  |--pxe.home.arpa
+    |--@proxmox_pve2_lxc:
+    |  |--test1-lxc.home.arpa
+    |  |--test-lxc.home.arpa
+    |--@proxmox_pve2_qemu:
+    |  |--test1
+    |--@proxmox_pool_pool1:
+    |  |--test1
+    |  |--test1-lxc.home.arpa
+    |  |--test-lxc.home.arpa
+
+== 2. Two guests named test-lxc.home.arpa: one host, the variables of the last one read
+  proxmox_vmid 104 on pve2 stopped
+
+== 3. Filters: running guests tagged test
+  test-lxc.home.arpa
+  a filter on proxmox_tags_parsed without want_facts:
+    5 warnings, hosts kept: debian-13-tmpl pxe.home.arpa test-lxc.home.arpa test1 test1-lxc.home.arpa
+
+== 4. want_facts: the guests' configuration as variables
+  requests to the API: 8 without facts, 31 with want_facts, 25 with want_post_filter_facts
+  pxe.home.arpa: ansible_host 192.168.1.100, running, tags ['infra', 'pxe']
+  test-lxc.home.arpa: ansible_host 192.168.1.104, stopped, tags ['web']
+  test1: ansible_host 192.168.1.101, stopped, tags ['test']
+  test1-lxc.home.arpa: ansible_host 192.168.1.103, stopped, tags ['test']
+  tag_infra: pxe.home.arpa
+  tag_pxe: pxe.home.arpa
+  tag_test: test-lxc.home.arpa test1 test1-lxc.home.arpa
+  tag_web: test-lxc.home.arpa
+  pattern tag_test:&proxmox_all_running:
+    hosts (1):
+      test-lxc.home.arpa
+
+== 5. Empty inventories, exit code 0
+  a guest with no name: exit 0, hosts: (none)
+    Invalid empty host name provided
+  the same with any_unparsed_is_failed: exit 1
+  plugin: community.general.proxmox: exit 0, hosts: (none)
+    community.general.proxmox has been deprecated. The proxmox content has been moved to community.proxmox.
+    Invalid value 'community.general.proxmox' for config 'plugin'

@@ -1,0 +1,6 @@
+---
+# Every guest and node, with the plugin's defaults: the guest with no name breaks the source.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+# The password comes from PROXMOX_PASSWORD in the environment.

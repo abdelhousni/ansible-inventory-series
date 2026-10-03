@@ -114,6 +114,18 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Dynamic inventory from Proxmox VE
+
+| To… | Use | Where |
+|---|---|---|
+| Make each Proxmox guest a host | `community.proxmox.proxmox`, a `*.proxmox.yml` file | `17-proxmox-inventory/inventory/guests.proxmox.yml` |
+| Target guests by node, type, status or pool | the plugin's groups: `proxmox_<node>_<type>`, `proxmox_all_running`, `proxmox_pool_<pool>` | `17-proxmox-inventory/run.sh` |
+| Keep only some guests | `filters:` on `proxmox_status` and `proxmox_tags`, without `want_facts` | `17-proxmox-inventory/inventory/running-test.proxmox.yml` |
+| Get each guest's configuration as variables | `want_facts: true`, or `want_post_filter_facts: true` for fewer API calls | `17-proxmox-inventory/inventory/facts.proxmox.yml`, `post-filter-facts.proxmox.yml` |
+| Set `ansible_host` from the guest agent or the static IP | `compose:` over `proxmox_agent_interfaces`, `proxmox_ipconfig0`, `proxmox_net0` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| A group per Proxmox tag | `keyed_groups:` on `proxmox_tags_parsed` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| Fail when a source doesn't parse | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true` (`any_unparsed_is_failed`) | `17-proxmox-inventory/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -228,6 +240,15 @@ Each of these is shown, with its output in the example's `expected.txt`:
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
+- One guest with an empty name makes the Proxmox source fail as a whole:
+  no host at all, warnings, exit code 0 (`17-proxmox-inventory/pitfalls/unnamed.proxmox.yml`).
+- `plugin: community.general.proxmox` is redirected to community.proxmox
+  with a deprecation warning, then refused by the plugin's own `choices`:
+  empty inventory, exit code 0 (`17-proxmox-inventory/pitfalls/redirect.proxmox.yml`).
+- Two guests with the same name make one host: the variables of the last
+  one read, the groups of both (`17-proxmox-inventory/run.sh`).
+- A filter on a fact that only `want_facts` provides errors for every guest
+  and keeps them all, with a warning each (`17-proxmox-inventory/pitfalls/tags-parsed.proxmox.yml`).
 
 ## Testing patterns worth reusing
 
@@ -245,3 +266,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
+| Test an inventory plugin without its server | a mock of the API in Python, serving recorded responses and logging each request | `17-proxmox-inventory/mock/` |

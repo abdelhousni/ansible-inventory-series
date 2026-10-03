@@ -25,6 +25,19 @@ else
 fi
 
 echo "Needed by some examples:"
+for c in general proxmox; do
+  if [ -d "collections/ansible_collections/community/$c" ]; then
+    ok "community.$c in collections/ (17)"
+  else
+    ko "community.$c in collections/ (17)" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
+  fi
+done
+if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null; then
+  ok "requests in .venv (17)"
+else
+  ko "requests in .venv (17)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+fi
+
 command -v jq >/dev/null && ok "jq (03, 08, 09, 10)" || ko "jq (03, 08, 09, 10)" "install your distribution's jq package"
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
