@@ -1,0 +1,5 @@
+---
+# Wrong on purpose: the version db2 was found running, written back into the
+# inventory. It overrides the group's declaration, so there is no drift left
+# to see: the inventory now describes the past.
+postgresql_version: 15

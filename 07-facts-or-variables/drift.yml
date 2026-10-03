@@ -1,0 +1,30 @@
+---
+# Compares what the inventory declares (to-be: postgresql_version) with what
+# each host has installed (as-is: package facts), and writes one line per
+# host to the report file. Reports drift, changes nothing.
+- name: Compare the declared PostgreSQL version with the installed one
+  hosts: postgresql
+  gather_facts: false
+  vars:
+    drift_report: out/drift.txt
+  tasks:
+    - name: Gather the installed packages
+      ansible.builtin.package_facts:
+
+    - name: Write the drift report
+      ansible.builtin.copy:
+        dest: "{{ drift_report }}"
+        mode: "0644"
+        # installed: the major versions in the names of the installed
+        # postgresql-client-NN packages, such as ['16'].
+        content: |
+          {% for host in ansible_play_hosts_all | sort %}
+          {% set declared = hostvars[host].postgresql_version | string %}
+          {% set installed = hostvars[host].ansible_facts.packages
+               | select('match', '^postgresql-client-[0-9]+$')
+               | map('regex_replace', '^postgresql-client-', '') | list %}
+          {{ host }}: declared {{ declared }}, installed {{ installed | join(', ') | default('none', true) }}:
+            {{- ' ok' if installed == [declared] else ' drift' }}
+          {% endfor %}
+      delegate_to: localhost
+      run_once: true

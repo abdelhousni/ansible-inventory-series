@@ -1,0 +1,4 @@
+---
+# To-be: the PostgreSQL major version every host in the group should run.
+# A declaration, written by hand; never a value read back from a host.
+postgresql_version: 16
