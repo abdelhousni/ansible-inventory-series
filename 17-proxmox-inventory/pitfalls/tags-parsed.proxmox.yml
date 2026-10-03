@@ -1,0 +1,9 @@
+---
+# proxmox_tags_parsed exists only with want_facts: the filter errors and keeps every host.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+exclude_nodes: true
+filters:
+  - proxmox_name != ''
+  - "'test' in proxmox_tags_parsed"

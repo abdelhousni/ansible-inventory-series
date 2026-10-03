@@ -1,0 +1,302 @@
+{
+ "/nodes": [
+  {
+   "node": "pve",
+   "status": "online",
+   "type": "node",
+   "id": "node/pve"
+  },
+  {
+   "node": "pve2",
+   "status": "online",
+   "type": "node",
+   "id": "node/pve2"
+  }
+ ],
+ "/nodes/pve/qemu": [
+  {
+   "vmid": 100,
+   "name": "pxe.home.arpa",
+   "status": "running",
+   "maxmem": 4294967296,
+   "tags": "infra;pxe"
+  },
+  {
+   "vmid": 9000,
+   "name": "debian-13-tmpl",
+   "status": "stopped",
+   "maxmem": 536870912,
+   "tags": "template",
+   "template": 1
+  }
+ ],
+ "/nodes/pve/lxc": [
+  {
+   "vmid": 102,
+   "name": "test-lxc.home.arpa",
+   "status": "running",
+   "maxmem": 536870912,
+   "tags": "test;web"
+  }
+ ],
+ "/nodes/pve/network": [
+  {
+   "iface": "vmbr0",
+   "active": 1,
+   "address": "192.168.1.2",
+   "gateway": "192.168.1.1",
+   "type": "bridge"
+  }
+ ],
+ "/nodes/pve2/qemu": [
+  {
+   "vmid": 101,
+   "name": "test1",
+   "status": "stopped",
+   "maxmem": 536870912,
+   "tags": "test"
+  }
+ ],
+ "/nodes/pve2/lxc": [
+  {
+   "vmid": 103,
+   "name": "test1-lxc.home.arpa",
+   "status": "stopped",
+   "maxmem": 536870912,
+   "tags": "test"
+  },
+  {
+   "vmid": 104,
+   "name": "test-lxc.home.arpa",
+   "status": "stopped",
+   "maxmem": 536870912,
+   "tags": "web"
+  },
+  {
+   "vmid": 105,
+   "name": "",
+   "status": "stopped",
+   "maxmem": 536870912
+  }
+ ],
+ "/nodes/pve2/network": [
+  {
+   "iface": "vmbr0",
+   "active": 1,
+   "address": "192.168.1.3",
+   "gateway": "192.168.1.1",
+   "type": "bridge"
+  }
+ ],
+ "/nodes/pve/qemu/100/status/current": {
+  "status": "running",
+  "vmid": 100,
+  "qmpstatus": "running"
+ },
+ "/nodes/pve/qemu/100/agent/network-get-interfaces": {
+  "result": [
+   {
+    "name": "lo",
+    "hardware-address": "00:00:00:00:00:00",
+    "ip-addresses": [
+     {
+      "ip-address": "127.0.0.1",
+      "ip-address-type": "ipv4",
+      "prefix": 8
+     }
+    ]
+   },
+   {
+    "name": "eth0",
+    "hardware-address": "bc:24:11:00:00:00",
+    "ip-addresses": [
+     {
+      "ip-address": "192.168.1.100",
+      "ip-address-type": "ipv4",
+      "prefix": 24
+     }
+    ]
+   }
+  ]
+ },
+ "/nodes/pve/qemu/100/config": {
+  "name": "pxe.home.arpa",
+  "cores": 2,
+  "memory": "4096",
+  "net0": "virtio=BC:24:11:00:00:00,bridge=vmbr0",
+  "scsi0": "local-lvm:vm-100-disk-0,size=32G",
+  "agent": "1",
+  "tags": "infra;pxe"
+ },
+ "/nodes/pve/qemu/100/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve2/qemu/101/status/current": {
+  "status": "stopped",
+  "vmid": 101,
+  "qmpstatus": "stopped"
+ },
+ "/nodes/pve2/qemu/101/config": {
+  "name": "test1",
+  "cores": 2,
+  "memory": "512",
+  "net0": "virtio=BC:24:11:00:00:01,bridge=vmbr0",
+  "scsi0": "local-lvm:vm-101-disk-0,size=32G",
+  "ipconfig0": "ip=192.168.1.101/24,gw=192.168.1.1",
+  "tags": "test"
+ },
+ "/nodes/pve2/qemu/101/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve/lxc/102/status/current": {
+  "status": "running",
+  "vmid": 102
+ },
+ "/nodes/pve/lxc/102/interfaces": [
+  {
+   "name": "lo",
+   "hwaddr": "00:00:00:00:00:00",
+   "inet": "127.0.0.1/8"
+  },
+  {
+   "name": "eth0",
+   "hwaddr": "bc:24:11:00:01:02",
+   "inet": "192.168.1.102/24"
+  }
+ ],
+ "/nodes/pve/lxc/102/config": {
+  "hostname": "test-lxc.home.arpa",
+  "cores": 1,
+  "memory": 512,
+  "ostype": "debian",
+  "net0": "name=eth0,bridge=vmbr0,hwaddr=BC:24:11:00:01:02,ip=192.168.1.102/24,gw=192.168.1.1",
+  "rootfs": "local-lvm:vm-102-disk-0,size=8G",
+  "tags": "test;web"
+ },
+ "/nodes/pve/lxc/102/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve2/lxc/103/status/current": {
+  "status": "stopped",
+  "vmid": 103
+ },
+ "/nodes/pve2/lxc/103/config": {
+  "hostname": "test1-lxc.home.arpa",
+  "cores": 1,
+  "memory": 512,
+  "ostype": "debian",
+  "net0": "name=eth0,bridge=vmbr0,hwaddr=BC:24:11:00:01:03,ip=192.168.1.103/24,gw=192.168.1.1",
+  "rootfs": "local-lvm:vm-103-disk-0,size=8G",
+  "tags": "test"
+ },
+ "/nodes/pve2/lxc/103/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve2/lxc/104/status/current": {
+  "status": "stopped",
+  "vmid": 104
+ },
+ "/nodes/pve2/lxc/104/config": {
+  "hostname": "test-lxc.home.arpa",
+  "cores": 1,
+  "memory": 512,
+  "ostype": "debian",
+  "net0": "name=eth0,bridge=vmbr0,hwaddr=BC:24:11:00:01:04,ip=192.168.1.104/24,gw=192.168.1.1",
+  "rootfs": "local-lvm:vm-104-disk-0,size=8G",
+  "tags": "web"
+ },
+ "/nodes/pve2/lxc/104/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve2/lxc/105/status/current": {
+  "status": "stopped",
+  "vmid": 105
+ },
+ "/nodes/pve2/lxc/105/config": {
+  "hostname": "ct105",
+  "cores": 1,
+  "memory": 512,
+  "ostype": "debian",
+  "net0": "name=eth0,bridge=vmbr0,hwaddr=BC:24:11:00:01:05,ip=192.168.1.105/24,gw=192.168.1.1",
+  "rootfs": "local-lvm:vm-105-disk-0,size=8G"
+ },
+ "/nodes/pve2/lxc/105/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/nodes/pve/qemu/9000/status/current": {
+  "status": "stopped",
+  "vmid": 9000,
+  "qmpstatus": "stopped"
+ },
+ "/nodes/pve/qemu/9000/config": {
+  "name": "debian-13-tmpl",
+  "cores": 2,
+  "memory": "512",
+  "net0": "virtio=BC:24:11:00:00:00,bridge=vmbr0",
+  "scsi0": "local-lvm:vm-9000-disk-0,size=32G",
+  "template": 1,
+  "tags": "template"
+ },
+ "/nodes/pve/qemu/9000/snapshot": [
+  {
+   "name": "current",
+   "description": "You are here!"
+  }
+ ],
+ "/pools": [
+  {
+   "poolid": "pool1"
+  }
+ ],
+ "/pools/pool1": {
+  "poolid": "pool1",
+  "members": [
+   {
+    "id": "qemu/101",
+    "vmid": 101,
+    "name": "test1",
+    "node": "pve2",
+    "type": "qemu"
+   },
+   {
+    "id": "lxc/103",
+    "vmid": 103,
+    "name": "test1-lxc.home.arpa",
+    "node": "pve2",
+    "type": "lxc"
+   },
+   {
+    "id": "lxc/104",
+    "vmid": 104,
+    "name": "test-lxc.home.arpa",
+    "node": "pve2",
+    "type": "lxc"
+   },
+   {
+    "id": "lxc/105",
+    "vmid": 105,
+    "name": "",
+    "node": "pve2",
+    "type": "lxc"
+   }
+  ]
+ }
+}

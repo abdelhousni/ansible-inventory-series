@@ -25,17 +25,25 @@ else
 fi
 
 echo "Needed by some examples:"
-if [ -d collections/ansible_collections/community/proxmox ]; then
-  ok "community.proxmox in collections/ (20)"
+if [ -d collections/ansible_collections/theforeman/foreman ]; then
+  ok "theforeman.foreman in collections/ (16)"
 else
-  ko "community.proxmox in collections/ (20)" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
+  ko "theforeman.foreman in collections/ (16)" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
 fi
-if .venv/bin/python -c 'import requests' 2>/dev/null; then
-  ok "requests in .venv (20)"
+if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null; then
+  ok "requests in .venv (16, 17, 18, 20)"
 else
-  ko "requests in .venv (20)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+  ko "requests in .venv (16, 17, 18, 20)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
-command -v jq >/dev/null && ok "jq (03, 08, 09, 10)" || ko "jq (03, 08, 09, 10)" "install your distribution's jq package"
+command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18)" || ko "jq (03, 08, 09, 10, 16, 18)" "install your distribution's jq package"
+for c in general proxmox; do
+  if [ -d "collections/ansible_collections/community/$c" ]; then
+    ok "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))"
+  else
+    ko "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
+  fi
+done
+
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
 if ! command -v docker >/dev/null; then

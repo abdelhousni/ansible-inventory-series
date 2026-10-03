@@ -1,0 +1,9 @@
+---
+# The Reports API, the default: it needs the foreman_ansible plugin on the
+# server, and builds location, organization and content groups itself.
+plugin: theforeman.foreman.foreman
+url: http://127.0.0.1:18160
+want_params: true
+want_hostcollections: true
+hostnames:
+  - name.split('.')[0]

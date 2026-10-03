@@ -1,0 +1,12 @@
+---
+- name: Read the Foreman parameters of each host
+  hosts: all
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Show the parameters, a dict with legacy_hostvars, as a list
+      ansible.builtin.debug:
+        msg: "{{ item.key }}={{ item.value }}"
+      loop: "{{ foreman_params | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"

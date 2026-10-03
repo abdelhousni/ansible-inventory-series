@@ -1,0 +1,37 @@
+---
+# The same source with the constructed options set on the proxmox plugin
+# itself (it is Constructable): no constructed source. File name, mock and
+# token as in inventory/10-pve.proxmox.yml.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18180
+user: ansible@pve
+token_id: inventory
+token_secret: test-only-not-a-secret
+validate_certs: false
+# Read each guest's config: tags as a list, ostype, IP settings.
+want_facts: true
+# Guests only, not the Proxmox nodes themselves.
+exclude_nodes: true
+strict: false
+leading_separator: false
+keyed_groups:
+  # One group per tag; a guest without tags goes to tag_untagged.
+  - key: proxmox_tags_parsed | default([''])
+    prefix: tag
+    default_value: untagged
+  - key: proxmox_status
+    prefix: status
+  # A dict gives <key>_<value>; with no value, just <key>.
+  - key: "{'os': proxmox_ostype | default('')}"
+    trailing_separator: false
+  # owner comes from group_vars/proxmox_pool_pool1/.
+  - key: owner
+    prefix: owner
+groups:
+  # guest_tags is set by compose below, which runs first.
+  web_prod: "['web', 'prod'] is subset(guest_tags)"
+  prod_down: "'prod' in guest_tags and proxmox_status is eq('stopped')"
+  local_domain: inventory_hostname is search('\\.home\\.arpa$')
+compose:
+  guest_tags: proxmox_tags_parsed | default([])
+  ansible_host: (proxmox_ipconfig0 | default(proxmox_net0)).ip | split('/') | first
