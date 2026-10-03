@@ -1,0 +1,24 @@
+---
+# Writes two variables each host gets when a playbook runs to
+# out/versions.txt, in the example's directory. It runs once, on the
+# implicit localhost, and reads every host's variables through hostvars.
+# The paths start from playbook_dir: a plain "out" landed in playbooks/out.
+- name: Record what a playbook sees for every host
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Make out/
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../out"
+        state: directory
+        mode: "0755"
+
+    - name: Write out/versions.txt
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/../out/versions.txt"
+        mode: "0644"
+        content: |
+          {% for host in groups['all'] | sort %}
+          {{ host }}: postgresql_version={{ hostvars[host].postgresql_version | default('-') }}, {{ ''
+          }}backup_keep={{ hostvars[host].backup_keep | default('-') }}
+          {% endfor %}

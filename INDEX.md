@@ -42,6 +42,18 @@ its output with the example's `expected.txt`.
 | Check which user and machine a connection really reached | `setup` with `gather_subset: [user, platform]` | `04-connection-variables/whoami.yml` |
 | Give each host its connection settings | `host_vars/<host>/ansible.yml` | `04-connection-variables/inventory/host_vars/` |
 
+## Checking what Ansible sees
+
+| To… | Use | Where |
+|---|---|---|
+| Find a host in the wrong group | `ansible-inventory --graph`, or `--graph <group>` for one branch | `06-ansible-inventory/run.sh` |
+| Check that a group exists before blaming its `group_vars/` | `ansible-inventory --graph <group>` fails for an unknown group | `06-ansible-inventory/run.sh` |
+| See which group sets a variable, and which value wins | `ansible-inventory --graph --vars <group>` | `06-ansible-inventory/run.sh` |
+| See the merged variables of one host | `ansible-inventory --host <host>` | `06-ansible-inventory/run.sh` |
+| See variables per group, as they're written | `ansible-inventory --list --export` | `06-ansible-inventory/run.sh` |
+| Dump the inventory as YAML, or to a file | `--list --yaml`, `--list --output <file>` | `06-ansible-inventory/run.sh` |
+| Include the `group_vars/` beside a playbook | `ansible-inventory --playbook-dir <dir>` | `06-ansible-inventory/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -74,6 +86,20 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - The local connection ignores `ansible_user` (`04-connection-variables/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
+- `ansible-inventory --graph` and `--host` ignore `--limit`; `--list` obeys
+  it, and keeps an emptied group in its parent's `children` while dropping
+  the group's own entry (`06-ansible-inventory/`).
+- `--list --yaml` prints a host's variables under the first group it
+  appears in, and `{}` under the others (`06-ansible-inventory/`).
+- `ansible-inventory` shows variables unrendered, such as
+  `"{{ ansible_playbook_python }}"` (`06-ansible-inventory/`).
+- The implicit localhost answers `--host localhost` but is absent from
+  `--list` and `--graph` (`06-ansible-inventory/`).
+- `group_vars/` beside a playbook reach every play's hosts, but
+  `ansible-inventory` shows them only with `--playbook-dir`
+  (`06-ansible-inventory/playbooks/`).
+- `--toml` fails without the `tomli-w` Python library, which ansible-core
+  doesn't install (`06-ansible-inventory/`).
 
 ## Testing patterns worth reusing
 
@@ -84,3 +110,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Keep machine-specific names out of `expected.txt` | compare a fact with the controller's own value, print a fixed label | `04-connection-variables/whoami.yml` |
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
+| Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |

@@ -1,0 +1,4 @@
+---
+# Beside the playbook, not the inventory: ansible-playbook reads it,
+# ansible-inventory only with --playbook-dir.
+backup_keep: 30
