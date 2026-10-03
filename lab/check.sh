@@ -44,7 +44,6 @@ for c in general proxmox; do
   fi
 done
 
-command -v jq >/dev/null && ok "jq (03, 08, 09, 10)" || ko "jq (03, 08, 09, 10)" "install your distribution's jq package"
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
 if ! command -v docker >/dev/null; then
