@@ -1,0 +1,4 @@
+---
+# A declared list, under the name package_facts also uses for its fact.
+packages:
+  - postgresql-client-16

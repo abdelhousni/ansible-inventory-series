@@ -61,6 +61,16 @@ its output with the example's `expected.txt`.
 | See variables per group, as they're written | `ansible-inventory --list --export` | `06-ansible-inventory/run.sh` |
 | Dump the inventory as YAML, or to a file | `--list --yaml`, `--list --output <file>` | `06-ansible-inventory/run.sh` |
 | Include the `group_vars/` beside a playbook | `ansible-inventory --playbook-dir <dir>` | `06-ansible-inventory/run.sh` |
+## Facts and declared variables
+
+| To… | Use | Where |
+|---|---|---|
+| Declare the state a group should be in (to-be) | a group variable, `group_vars/<group>/<role>.yml` | `07-facts-or-variables/inventory/group_vars/postgresql/postgresql.yml` |
+| Find out what a host has installed (as-is) | `ansible.builtin.package_facts`, read as `ansible_facts.packages` | `07-facts-or-variables/drift.yml` |
+| Report drift between declared and installed versions | compare `hostvars[host].postgresql_version` with the facts, one line per host | `07-facts-or-variables/drift.yml` |
+| Keep facts between runs | `fact_caching = ansible.builtin.jsonfile` with `fact_caching_connection` | `07-facts-or-variables/ansible.cfg` |
+| See only the inventory's own host variables, never cached facts | `ansible-inventory --host <host> --export` | `07-facts-or-variables/run.sh` |
+| Stop facts from overriding inventory variables of the same name | `inject_facts_as_vars = False`, or `ANSIBLE_INJECT_FACT_VARS=false` | `07-facts-or-variables/run.sh` |
 
 ## Pitfalls recorded
 
@@ -118,6 +128,18 @@ Each of these is shown, with its output in the example's `expected.txt`:
   (`06-ansible-inventory/playbooks/`).
 - `--toml` fails without the `tomli-w` Python library, which ansible-core
   doesn't install (`06-ansible-inventory/`).
+- With a fact cache, `ansible-inventory --host` shows cached facts as if they
+  were inventory variables; `--export` leaves them out, and group variables
+  too (`07-facts-or-variables/run.sh`).
+- A discovered version written back into `host_vars/` overrides the group's
+  declaration, and the drift report says *ok*
+  (`07-facts-or-variables/pitfalls/written-back/`).
+- A fact injected as a variable beats an inventory variable of the same name:
+  `packages` becomes package_facts' dict, with a deprecation warning
+  (`07-facts-or-variables/pitfalls/fact-named-like-a-variable/`).
+- `package_facts` on Debian or Ubuntu needs `python3-apt` on the host, or it
+  fails with *Could not detect a supported package manager*
+  (`07-facts-or-variables/containers/`).
 
 ## Testing patterns worth reusing
 
@@ -127,6 +149,8 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test SSH and container connections in CI | an sshd container on `127.0.0.1:2222`, a key pair generated per run | `04-connection-variables/run.sh`, `containers/Containerfile` |
 | Keep machine-specific names out of `expected.txt` | compare a fact with the controller's own value, print a fixed label | `04-connection-variables/whoami.yml` |
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
+| Test drift against real package databases | one container per version, built from images pinned by digest | `07-facts-or-variables/containers/` |
+| Overlay a wrong inventory on the right one | a second `-i` source that adds one variable | `07-facts-or-variables/run.sh`, `pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |

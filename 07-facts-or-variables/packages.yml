@@ -1,0 +1,20 @@
+---
+# Gathers package facts, then reads the inventory variable called packages
+# and writes its type to the report file: a list, as declared, or the dict
+# of installed packages, when the fact has been injected over it.
+- name: Read an inventory variable that a fact shares its name with
+  hosts: db1
+  gather_facts: false
+  vars:
+    packages_report: out/packages.txt
+  tasks:
+    - name: Gather the installed packages
+      ansible.builtin.package_facts:
+
+    - name: Write the type of packages
+      ansible.builtin.copy:
+        dest: "{{ packages_report }}"
+        mode: "0644"
+        content: |
+          packages is a {{ packages | type_debug }}
+      delegate_to: localhost

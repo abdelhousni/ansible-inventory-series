@@ -1,0 +1,20 @@
+ansible-inventory --host db1, before any play:
+  ansible_connection, ansible_host, ansible_python_interpreter, postgresql_version
+
+Declared against installed:
+  db1: declared 16, installed 16: ok
+  db2: declared 16, installed 15: drift
+
+ansible-inventory --host db1, after the play filled the fact cache:
+  ansible_connection, ansible_host, ansible_python_interpreter, packages, postgresql_version
+the same with --export:
+  ansible_connection, ansible_host, ansible_python_interpreter
+
+With the installed version written back into db2's host_vars:
+  db1: declared 16, installed 16: ok
+  db2: declared 15, installed 15: ok
+
+An inventory variable called packages, after package_facts:
+  injected (the default): packages is a dict
+  warning: INJECT_FACTS_AS_VARS default to `True` is deprecated
+  inject_facts_as_vars=false: packages is a list
