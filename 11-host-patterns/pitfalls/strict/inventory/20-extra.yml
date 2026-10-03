@@ -1,0 +1,9 @@
+---
+# A second source in the same directory: it adds app3 to app. Sources are read
+# in file-name order and merged, so app now has four hosts. app3 is in no
+# environment group, so it has no env.
+all:
+  children:
+    app:
+      hosts:
+        app3:

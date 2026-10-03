@@ -1,0 +1,8 @@
+---
+# The same constructed source with strict: true: app3 has no env.
+plugin: ansible.builtin.constructed
+strict: true
+use_vars_plugins: true
+keyed_groups:
+  - key: env
+    prefix: env

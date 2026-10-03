@@ -16,6 +16,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`08-where-variables-live/`](08-where-variables-live/) | [Item 8: Where a variable should live](https://til.housni.eu/ansible/inventory-where-a-variable-should-live.html) |
 | [`09-inventory-precedence/`](09-inventory-precedence/) | [Item 9: Inventory precedence, depth and ansible_group_priority](https://til.housni.eu/ansible/inventory-precedence-depth-and-group-priority.html) |
 | [`10-secrets-in-the-inventory/`](10-secrets-in-the-inventory/) | [Item 10: Secrets in the inventory, vault.yml and aliases](https://til.housni.eu/ansible/inventory-secrets-vault-yml-aliases.html) |
+| [`11-host-patterns/`](11-host-patterns/) | [Item 11: Targeting hosts with patterns, --limit and constructed groups](https://til.housni.eu/ansible/targeting-hosts-static-and-dynamic-inventory.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -65,7 +66,7 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03 and 05 to 06 connect to every
+- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 connect to every
   host locally. 04 and 07 start their targets as Docker containers on the
   local machine, from images pinned by digest, and 04 generates an SSH key
   pair for each run in its `out/` directory.

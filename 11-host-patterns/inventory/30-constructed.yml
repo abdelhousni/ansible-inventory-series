@@ -1,0 +1,10 @@
+---
+# Builds env_prod and env_staging from each host's env variable. It runs after
+# 10- and 20-, so it sees their hosts; use_vars_plugins makes it read
+# group_vars/, where env is set.
+plugin: ansible.builtin.constructed
+strict: false
+use_vars_plugins: true
+keyed_groups:
+  - key: env
+    prefix: env
