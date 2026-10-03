@@ -1,0 +1,15 @@
+---
+# Uses postgresql_password the way a role would; run.sh reads the output.
+# The first task prints it carelessly, the second sets no_log.
+- name: Use the PostgreSQL password
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Print the password, as a careless task would
+      ansible.builtin.debug:
+        msg: "password is {{ postgresql_password }}"
+
+    - name: Use the password with no_log
+      ansible.builtin.debug:
+        msg: "password is {{ postgresql_password }}"
+      no_log: true
