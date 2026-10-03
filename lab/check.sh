@@ -31,16 +31,16 @@ else
   ko "theforeman.foreman in collections/ (16)" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
 fi
 if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null; then
-  ok "requests in .venv (16, 17, 18)"
+  ok "requests in .venv (16, 17, 18, 20)"
 else
-  ko "requests in .venv (16, 17, 18)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+  ko "requests in .venv (16, 17, 18, 20)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
 command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18)" || ko "jq (03, 08, 09, 10, 16, 18)" "install your distribution's jq package"
 for c in general proxmox; do
   if [ -d "collections/ansible_collections/community/$c" ]; then
-    ok "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18'))"
+    ok "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))"
   else
-    ko "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18'))" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
+    ko "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
   fi
 done
 

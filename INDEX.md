@@ -184,6 +184,16 @@ its output with the example's `expected.txt`.
 | Group on a variable from `group_vars/` of a group another source built | a separate `constructed` source with `use_vars_plugins: true` | `18-constructed/inventory/group_vars/proxmox_pool_pool1/` |
 | Skip a separate source when only the plugin's own data counts | `keyed_groups`, `groups`, `compose` on the dynamic plugin itself | `18-constructed/direct/` |
 
+## Inventory cache and API load
+
+| Problem | Feature | Where |
+|---|---|---|
+| Count the API requests one inventory run makes | a mock API that logs each request, emptied before each run | `20-inventory-cache-performance/run.sh`, `mock/server.py` |
+| Read guest facts with fewer requests | `want_post_filter_facts: true` instead of `want_facts: true` | `20-inventory-cache-performance/inventory/post-filter-facts.proxmox.yml` |
+| Skip the API on the next runs | `cache: true`, `cache_plugin: ansible.builtin.jsonfile`, `cache_connection:` | `20-inventory-cache-performance/inventory/cached.proxmox.yml` |
+| Bound how old the cached inventory may get | `cache_timeout:` in seconds (3600 by default, 0 for never) | `20-inventory-cache-performance/inventory/cached.proxmox.yml` |
+| Stop waiting for a slow inventory API | an outer limit such as `timeout 2 ansible-inventory …`: the plugin has no timeout option | `20-inventory-cache-performance/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -375,6 +385,17 @@ Each of these is shown, with its output in the example's `expected.txt`:
   one read, the groups of both (`17-proxmox-inventory/run.sh`).
 - A filter on a fact that only `want_facts` provides errors for every guest
   and keeps them all, with a warning each (`17-proxmox-inventory/pitfalls/tags-parsed.proxmox.yml`).
+- `cache: true` alone uses the `memory` cache plugin: the cache dies with
+  the process, and every run makes all its requests again
+  (`20-inventory-cache-performance/pitfalls/memory-cache.proxmox.yml`).
+- `want_facts` reads the configuration of every guest, filtered out or not:
+  407 requests against 207 with `want_post_filter_facts`, for the same 60
+  hosts (`20-inventory-cache-performance/run.sh`).
+- With a password, the Proxmox plugin asks for a ticket even when its cache
+  is warm: with the API down the source fails and the inventory is empty,
+  exit 0; with an API token it reads the cache (`20-inventory-cache-performance/run.sh`).
+- The Proxmox plugin sets no timeout on its requests: a slow API makes
+  `ansible-inventory` wait as long as it takes (`20-inventory-cache-performance/pitfalls/slow-api.proxmox.yml`).
 
 ## Testing patterns worth reusing
 
@@ -398,3 +419,6 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
 | Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
 | Test an inventory plugin without its server | a mock of the API in Python, serving recorded responses and logging each request | `17-proxmox-inventory/mock/` |
+| Show what a cache saves without flaky timings | a fixed latency per request in the mock; wall time checked as a lower bound and a ratio | `20-inventory-cache-performance/run.sh` |
+| Test a large inventory without a large fixture in Git | a script generating the mock's responses at each run | `20-inventory-cache-performance/mock/generate.py` |
+| Expire a cache without waiting | `touch -d '2 hours ago'` on the cache file | `20-inventory-cache-performance/run.sh` |
