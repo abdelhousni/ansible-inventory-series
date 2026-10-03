@@ -1,0 +1,10 @@
+---
+- name: Show which app hosts the play reached
+  hosts: app
+  gather_facts: false
+  tasks:
+    - name: Print each host with its env
+      ansible.builtin.debug:
+        msg: "{{ item }}: env {{ hostvars[item].env | default('not set') }}"
+      loop: "{{ ansible_play_hosts_all }}"
+      run_once: true

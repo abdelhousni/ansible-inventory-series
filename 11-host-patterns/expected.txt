@@ -1,0 +1,71 @@
+== 1. Groups, unions, intersections, exclusions
+  all                                app1 app2 stg-app1 app3 db1 stg-db1
+  app                                app1 app2 stg-app1 app3
+  app:db                             app1 app2 stg-app1 app3 db1 stg-db1
+  app:&prod                          app1 app2
+  app:!staging                       app1 app2 app3
+  app,db                             app1 app2 stg-app1 app3 db1 stg-db1
+
+== 2. Order: unions first, then intersections, then exclusions
+  prod:&app:db                       app1 app2
+  app:db:&prod                       app1 app2 db1
+  !staging:app                       app1 app2 app3
+
+== 3. Indexes, wildcards, regexes
+  app[0]                             app1
+  app[1:]                            app2 stg-app1 app3
+  app[-1]                            app3
+  stg-*                              stg-app1 stg-db1
+  ~^(app|db)\d$                      app1 app2 db1 app3
+
+== 4. A second source: 20-extra.yml adds app3 to app
+  app -i inventory/10-hosts.yml      app1 app2 stg-app1
+  app -i inventory/10-hosts.yml -i inventory/20-extra.yml app1 app2 stg-app1 app3
+
+== 5. Constructed groups from a variable
+  env_prod                           app1 app2 db1
+  env_staging                        stg-app1 stg-db1
+  app:!env_prod:!env_staging         app3
+
+== 6. strict: true on a host without env
+  warnings: 4
+  Could not generate group for host app3 from env entry: 'env' is undefined
+  groups still built: env_prod env_staging
+
+== 7. --limit narrows the play's hosts: app
+  --limit (none):
+    app1: env prod
+    app2: env prod
+    stg-app1: env staging
+    app3: env not set
+  --limit staging:
+    stg-app1: env staging
+  --limit @limit.txt:
+    stg-app1: env staging
+  limit.txt holds: db1 stg-app1
+
+== 8. The whole tree
+@all:
+  |--@ungrouped:
+  |--@app:
+  |  |--app1
+  |  |--app2
+  |  |--stg-app1
+  |  |--app3
+  |--@db:
+  |  |--db1
+  |  |--stg-db1
+  |--@prod:
+  |  |--app1
+  |  |--app2
+  |  |--db1
+  |--@staging:
+  |  |--stg-app1
+  |  |--stg-db1
+  |--@env_prod:
+  |  |--app1
+  |  |--app2
+  |  |--db1
+  |--@env_staging:
+  |  |--stg-app1
+  |  |--stg-db1

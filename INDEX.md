@@ -100,6 +100,16 @@ its output with the example's `expected.txt`.
 | Use different passwords per environment | `ansible-vault encrypt --vault-id prod@file`, then `--vault-id` per ID | `10-secrets-in-the-inventory/vault-ids/` |
 | Change a vault password | `ansible-vault rekey --new-vault-password-file` | `10-secrets-in-the-inventory/run.sh` |
 
+## Targeting hosts
+
+| Problem | Feature | Where |
+|---|---|---|
+| Run on hosts in two groups, in both, or in one but not the other | `app:db`, `app:&prod`, `app:!staging` | `11-host-patterns/run.sh` |
+| Pick hosts by position or by name | `app[0]`, `app[1:]`, `stg-*`, `~^(app\|db)\d$` | `11-host-patterns/run.sh` |
+| Narrow a playbook's hosts without editing it | `--limit staging`, `--limit @limit.txt` | `11-host-patterns/site.yml`, `limit.txt` |
+| Add hosts from a second file | several sources in one inventory directory, read in name order | `11-host-patterns/inventory/20-extra.yml` |
+| Group hosts by a variable's value | `ansible.builtin.constructed` with `keyed_groups` and `use_vars_plugins: true` | `11-host-patterns/inventory/30-constructed.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -191,6 +201,15 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - `package_facts` on Debian or Ubuntu needs `python3-apt` on the host, or it
   fails with *Could not detect a supported package manager*
   (`07-facts-or-variables/containers/`).
+- Pattern operators apply by type, not left to right: unions, then
+  intersections, then exclusions, so `prod:&app:db` means `(prod or db) and
+  app` (`11-host-patterns/run.sh`).
+- `strict: true` stops a constructed source at the first host without the
+  key: four warnings, one per inventory plugin Ansible tries and an *Unable to
+  parse*, yet the groups built before that host stay
+  (`11-host-patterns/pitfalls/strict/`).
+- Without `use_vars_plugins: true`, `constructed` doesn't see `group_vars/`
+  (`11-host-patterns/inventory/30-constructed.yml`).
 
 ## Testing patterns worth reusing
 

@@ -1,0 +1,24 @@
+---
+# The series' prod and staging hosts in one inventory, grouped by function
+# (app, db) and by environment (prod, staging). No variables here: they live
+# in group_vars/.
+all:
+  children:
+    app:
+      hosts:
+        app1:
+        app2:
+        stg-app1:
+    db:
+      hosts:
+        db1:
+        stg-db1:
+    prod:
+      hosts:
+        app1:
+        app2:
+        db1:
+    staging:
+      hosts:
+        stg-app1:
+        stg-db1:
