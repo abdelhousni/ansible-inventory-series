@@ -1,0 +1,41 @@
+== One inventory directory per environment
+-i inventories/prod, hosts: app
+  app1: app_log_level=warning
+  app2: app_log_level=warning
+-i inventories/staging, hosts: app
+  stg-app1: app_log_level=debug
+
+== One inventory, prod and staging groups
+-i single, hosts: app (both environments)
+  app1: app_log_level=warning
+  app2: app_log_level=warning
+  stg-app1: app_log_level=debug
+-i single --limit staging, hosts: app
+  stg-app1: app_log_level=debug
+-i single, hosts: app:&staging
+  stg-app1: app_log_level=debug
+-i single --limit stagign (misspelled), hosts: app
+  exit 1
+  Could not match supplied host pattern, ignoring: stagign
+  Specified inventory, host pattern and/or --limit leaves us with no hosts to target.
+
+== Same variable in an environment group and a functional group
+single, app1:
+    "app_log_level":"warning"
+    "postgresql_max_connections":200
+single, db1:
+    "app_log_level":"warning"
+    "postgresql_max_connections":200
+single, stg-app1:
+    "app_log_level":"debug"
+    "postgresql_max_connections":50
+single, stg-db1:
+    "app_log_level":"debug"
+    "postgresql_max_connections":50
+precedence/web-after-prod, app1:
+    "app_log_level":"info"
+precedence/priority-in-hosts-file, app1:
+    "app_log_level":"warning"
+precedence/priority-in-group-vars, app1:
+    "ansible_group_priority":10
+    "app_log_level":"info"

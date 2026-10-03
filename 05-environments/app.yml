@@ -1,0 +1,18 @@
+---
+# Runs on every host that matches "app" in the inventory given with -i,
+# and writes which hosts those were, with the app_log_level each got, to
+# out/app.txt. Nothing else is changed.
+- name: Record the hosts that "app" reaches
+  hosts: app
+  gather_facts: false
+  tasks:
+    - name: Write the list of hosts reached
+      ansible.builtin.copy:
+        dest: out/app.txt
+        mode: "0644"
+        content: |
+          {% for host in ansible_play_hosts_all | sort %}
+          {{ host }}: app_log_level={{ hostvars[host]['app_log_level'] }}
+          {% endfor %}
+      delegate_to: localhost
+      run_once: true
