@@ -20,18 +20,66 @@ the pitfalls each example records.
 
 ## Running them
 
-Everything runs on the local machine and changes nothing outside the
-example's `out/` directory. From the repository root:
+From the repository root, once the lab below is in place:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/pip install --require-hashes -r requirements.txt
-.venv/bin/ansible-galaxy collection install -r requirements.yml -p collections
+./lab/check.sh                                 # reports anything missing
 PATH="$PWD/.venv/bin:$PATH" ./NN-name/run.sh
 ```
 
 Each example's `run.sh` prints what the entry says, and CI compares that
-output with the example's `expected.txt`.
+output with the example's `expected.txt`. It writes only to the example's
+`out/` directory, except the Docker examples (04, 07), which also build
+images and start containers. They remove their containers when they end;
+the images stay, and `docker image rm inv04-target inv07-db1 inv07-db2`
+removes them.
+
+## Local lab
+
+What the examples need, and how to set it up on your own machine. This is
+the setup the entries were tested with, on Ubuntu 24.04; GitHub's
+`ubuntu-24.04` runner, where CI runs, provides the same.
+
+| What | Version tested | Needed by | How |
+|---|---|---|---|
+| Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
+| ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
+| community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
+| jq | 1.7 | 03 | your distribution's `jq` package |
+| OpenSSH client | 9.6 | 04 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
+| Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/pip install --require-hashes -r requirements.txt
+.venv/bin/ansible-galaxy collection install -r requirements.yml -p collections
+./lab/check.sh
+```
+
+- **The virtualenv** holds exactly the packages in `requirements.txt`, with
+  their hashes. It's compiled from `requirements.in` with uv; CI's `lock`
+  job fails if the two drift apart.
+- **`collections/`** is next to the examples, and each example's
+  `ansible.cfg` points at it, so nothing is installed in your home
+  directory.
+- **No server is needed.** Examples 01 to 03 and 05 to 06 connect to every
+  host locally. 04 and 07 start their targets as Docker containers on the
+  local machine, from images pinned by digest, and 04 generates an SSH key
+  pair for each run in its `out/` directory.
+- **`lab/check.sh`** checks each line of the table and prints the command
+  for whatever is missing. It changes nothing.
+
+Two things to know:
+
+- **Podman instead of Docker is untested.** The examples call the `docker`
+  command, and the `community.docker.docker` connection plugin does too.
+  Podman's `docker` compatibility package may work; the entries weren't
+  tested with it.
+- **"Ansible requires blocking IO on stdin/stdout/stderr"**: some terminals
+  and sandboxes hand Ansible non-blocking output, and it refuses to run.
+  The `run.sh` scripts send Ansible's output to files, which avoids it.
+  To run a playbook by hand in such an environment, redirect its output to
+  a file too.
 
 ## Related series
 
