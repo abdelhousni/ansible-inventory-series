@@ -1,0 +1,30 @@
+---
+# Writes, for each host, the role variables it gets from group_vars/ to
+# out/vars.txt. It runs once, on the implicit localhost, and reads every
+# host's variables through hostvars. A variable belongs to a role when its
+# name starts with the role's name, as the CoP good practices ask.
+- name: Record the role variables of every host
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vars_role_prefix: ^(postgresql|podman|backup)_
+  tasks:
+    - name: Make out/
+      ansible.builtin.file:
+        path: out
+        state: directory
+        mode: "0755"
+
+    - name: Write out/vars.txt
+      ansible.builtin.copy:
+        dest: out/vars.txt
+        mode: "0644"
+        content: |
+          {% for host in groups['all'] | sort %}
+          {{ host }}:
+          {%   for name in hostvars[host] | select('match', vars_role_prefix) | sort %}
+            {{ name }}: {{ hostvars[host][name] | to_json }}
+          {%   else %}
+            (no role variables)
+          {%   endfor %}
+          {% endfor %}

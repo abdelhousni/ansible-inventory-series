@@ -1,0 +1,8 @@
+---
+# Read by the podman role, for every host of the app group.
+podman_registries_conf:
+  unqualified-search-registries:
+    - registry.example.org
+podman_firewall:
+  - port: 8080/tcp
+    state: enabled
