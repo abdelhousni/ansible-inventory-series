@@ -32,7 +32,7 @@ echo
 echo "db1 with ansible_host left at its default, the inventory name:"
 ansible db1 -m ansible.builtin.ping -e ansible_host=db1 >out/no-host.txt 2>&1 || true
 grep -o -m 1 'UNREACHABLE' out/no-host.txt | sed 's/^/  /' || true
-grep -o -m 1 'Could not resolve hostname db1: [A-Za-z ]*' out/no-host.txt | sed 's/^/  /' || true
+grep -o -m 1 'Could not resolve hostname db1' out/no-host.txt | sed 's/^/  /' || true
 
 echo
 echo "app1 with ansible_host left at its default, the inventory name:"

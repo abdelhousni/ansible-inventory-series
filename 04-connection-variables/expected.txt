@@ -19,7 +19,7 @@ jump1:
 
 db1 with ansible_host left at its default, the inventory name:
   UNREACHABLE
-  Could not resolve hostname db1: Name or service not known
+  Could not resolve hostname db1
 
 app1 with ansible_host left at its default, the inventory name:
   UNREACHABLE
