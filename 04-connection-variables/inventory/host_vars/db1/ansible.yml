@@ -1,0 +1,12 @@
+---
+# db1 is reached over SSH: an sshd container on the local machine, published
+# on port 2222, with a user of its own.
+ansible_connection: ssh
+ansible_host: 127.0.0.1
+ansible_port: 2222
+ansible_user: dbadmin
+ansible_ssh_private_key_file: "{{ inventory_dir }}/../out/id_ed25519"
+# Test only: the container's host key is new on every run.
+ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+# The image's Python, named so Ansible doesn't have to discover it.
+ansible_python_interpreter: /usr/local/bin/python3.12

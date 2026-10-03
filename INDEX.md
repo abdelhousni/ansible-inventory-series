@@ -31,6 +31,17 @@ its output with the example's `expected.txt`.
 | Fail when an inventory source can't be parsed | `ANSIBLE_INVENTORY_UNPARSED_FAILED=true`, or `[inventory] unparsed_is_failed = true` | `03-ini-or-yaml/run.sh` |
 | Run every host on the local machine for a test | `ansible_connection: local` with `ansible_playbook_python` | `02-inventory-directory/inventory/group_vars/all/ansible.yml` |
 
+## Connecting to hosts
+
+| To… | Use | Where |
+|---|---|---|
+| Reach a host by an address other than its inventory name | `ansible_host` | `04-connection-variables/inventory/host_vars/db1/ansible.yml` |
+| SSH on another port, as another user | `ansible_port`, `ansible_user` | `04-connection-variables/inventory/host_vars/db1/ansible.yml` |
+| Run tasks in a container without SSH | `ansible_connection: community.docker.docker`, `ansible_host` = container name | `04-connection-variables/inventory/host_vars/app1/ansible.yml` |
+| Run tasks on the controller | `ansible_connection: local` | `04-connection-variables/inventory/host_vars/jump1/ansible.yml` |
+| Check which user and machine a connection really reached | `setup` with `gather_subset: [user, platform]` | `04-connection-variables/whoami.yml` |
+| Give each host its connection settings | `host_vars/<host>/ansible.yml` | `04-connection-variables/inventory/host_vars/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -55,6 +66,12 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - An unquoted space on an INI host line drops the whole file: a warning, an
   empty inventory, and a playbook that exits 0 with "no hosts matched"
   (`03-ini-or-yaml/pitfalls/unquoted-space.ini`).
+- Without `ansible_host`, the ssh plugin resolves the inventory name:
+  *Could not resolve hostname db1* (`04-connection-variables/`).
+- Without `ansible_host`, the docker plugin looks for a container named after
+  the host, and the error says *Failed to create temporary directory*
+  (`04-connection-variables/`).
+- The local connection ignores `ansible_user` (`04-connection-variables/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
 
@@ -63,5 +80,7 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | To… | How | Where |
 |---|---|---|
 | Test an inventory without any server | every host with `ansible_connection: local` | `01-…`, `02-…` |
+| Test SSH and container connections in CI | an sshd container on `127.0.0.1:2222`, a key pair generated per run | `04-connection-variables/run.sh`, `containers/Containerfile` |
+| Keep machine-specific names out of `expected.txt` | compare a fact with the controller's own value, print a fixed label | `04-connection-variables/whoami.yml` |
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
