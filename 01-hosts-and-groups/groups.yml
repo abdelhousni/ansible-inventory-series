@@ -1,0 +1,28 @@
+---
+# Writes the groups mapping, and each host's group_names, to
+# out/groups.txt. It runs once, on the controller: localhost isn't in the
+# inventory, so Ansible provides it implicitly, and hostvars holds every
+# inventory host's variables.
+- name: Record the groups of every host
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Make out/
+      ansible.builtin.file:
+        path: out
+        state: directory
+        mode: "0755"
+
+    - name: Write out/groups.txt
+      ansible.builtin.copy:
+        dest: out/groups.txt
+        mode: "0644"
+        content: |
+          groups:
+          {% for name, members in groups | dictsort %}
+            {{ name }}: {{ members }}
+          {% endfor %}
+          group_names, per host:
+          {% for host in groups['all'] | sort %}
+            {{ host }}: {{ hostvars[host].group_names }}
+          {% endfor %}

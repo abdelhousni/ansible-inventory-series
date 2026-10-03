@@ -1,0 +1,26 @@
+ansible-inventory --graph:
+  @all:
+    |--@ungrouped:
+    |  |--jump1
+    |--@app:
+    |  |--app1
+    |  |--app2
+    |  |--app3
+    |--@postgresql:
+    |  |--@db:
+    |  |  |--db1
+    |--@backup:
+    |  |--db1
+groups:
+  all: ['jump1', 'app1', 'app2', 'app3', 'db1']
+  app: ['app1', 'app2', 'app3']
+  backup: ['db1']
+  db: ['db1']
+  postgresql: ['db1']
+  ungrouped: ['jump1']
+group_names, per host:
+  app1: ['app']
+  app2: ['app']
+  app3: ['app']
+  db1: ['backup', 'db', 'postgresql']
+  jump1: ['ungrouped']
