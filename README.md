@@ -22,6 +22,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
 | [`16-foreman-inventory/`](16-foreman-inventory/) | [Item 16: The Foreman/Satellite dynamic inventory plugin](https://til.housni.eu/ansible/foreman-dynamic-inventory-plugin.html) |
+| [`19-inventory-cache-stale-data/`](19-inventory-cache-stale-data/) | [Item 19: When the inventory cache lies: stale hosts, cache_timeout and --flush-cache](https://til.housni.eu/ansible/inventory-cache-stale-data.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -74,8 +75,9 @@ python3.12 -m venv .venv
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
 - **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 14 connect
-  to every host locally. 15 and 16 start their own mock APIs, small Python
-  servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160), and stop
+  to every host locally. 15, 16 and 19 start their own mock APIs, small Python
+  servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160, a CMDB
+  on 18190), and stop
   them when they end. 04 and 07 start their targets as Docker containers on
   the local machine, from images pinned by digest, and 04 generates an SSH
   key pair for each run in its `out/` directory.

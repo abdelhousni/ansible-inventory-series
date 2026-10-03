@@ -139,6 +139,15 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## The inventory cache
+
+| Problem | Feature | Where |
+|---|---|---|
+| Keep a plugin's inventory between runs | `cache_plugin: ansible.builtin.jsonfile` with `cache_connection`; the default `memory` lasts one run | `19-inventory-cache-stale-data/sources/jsonfile.cmdb.yml` |
+| Bound how stale a cached inventory can be | `cache_timeout` (seconds, default 3600), checked against the cache file's age | `19-inventory-cache-stale-data/sources/short.cmdb.yml` |
+| Share one cache directory between several sources | same `cache_connection` and `cache_prefix`: one file per plugin and configuration file path | `19-inventory-cache-stale-data/sources/dc1.cmdb.yml` |
+| Run a play on the source's current hosts, not the cached ones | `ansible-playbook --flush-cache` | `19-inventory-cache-stale-data/run.sh` |
+
 ## Foreman and Satellite
 
 | Problem | Feature | Where |
@@ -279,6 +288,21 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - Strings set by a custom inventory plugin are untrusted: `--list` prints
   them as `{"__ansible_unsafe": …}`, an inventory script's as plain strings
   (`15-single-source-of-truth/run.sh`).
+- An inventory cache in the default `memory` plugin lasts one run: the next
+  run calls the source again (`19-inventory-cache-stale-data/run.sh`).
+- An expired cache is not a fallback: with the source down, the plugin
+  returns no hosts and `ansible-inventory` exits 0, although the cache file
+  is still there (`19-inventory-cache-stale-data/run.sh`).
+- The cache key is the plugin name and the configuration file's absolute
+  path: a copy of the file elsewhere misses the cache, `./` or an absolute
+  path doesn't (`19-inventory-cache-stale-data/run.sh`).
+- A play on a cached inventory runs on a host the source has removed
+  (`19-inventory-cache-stale-data/deploy.yml`).
+- With `cache: true` and no `cache_plugin`, the inventory cache takes the
+  fact cache settings (`ANSIBLE_CACHE_PLUGIN`, `fact_caching`): set for facts,
+  they make the inventory persistent and stale too (`19-inventory-cache-stale-data/run.sh`).
+- `--flush-cache` clears the facts of the hosts in the refreshed inventory
+  only: a removed host's cached facts stay (`19-inventory-cache-stale-data/run.sh`).
 - Inventory files in a directory sort as text too: `9-override.yml` loads
   after `10-hosts.yml` and wins (`14-several-inventories/name-order/`).
 - With `-i dir1 -i dir2`, each directory's `group_vars/` applies to the hosts
@@ -323,6 +347,7 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Test cache expiry without flaky timings | a 5-second `cache_timeout`, `sleep 6`, outcomes printed rather than times | `19-inventory-cache-stale-data/run.sh` |
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
