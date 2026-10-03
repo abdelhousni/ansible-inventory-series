@@ -71,7 +71,11 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | community.proxmox | 2.0.0 | 17, 18, 20 | `requirements.yml`, installed into `collections/` |
 | check-jsonschema | 0.38.2 | 25 | in the virtualenv, from the locked `requirements.txt` |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
-| Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
+| Docker Engine | 29.6 | 04, 07 (the default runtime), and to build images for kind | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
+| Podman | 4.9.3 | 04, 07 with `LAB_RUNTIME=podman` | your distribution's `podman` package |
+| containers.podman | 1.20.2 | 04, 07 with `LAB_RUNTIME=podman` | `requirements.yml`, installed into `collections/` |
+| kind and kubectl | 0.30.0 and 1.34.1 | 04, 07 with `LAB_RUNTIME=kubernetes` | the release binaries, then `kind create cluster --name lab` |
+| kubernetes.core | 6.6.0 | 04, 07 with `LAB_RUNTIME=kubernetes` | `requirements.yml`, installed into `collections/` |
 
 ```sh
 python3.12 -m venv .venv
@@ -90,18 +94,27 @@ python3.12 -m venv .venv
   and 25 connect to every host locally. 15 to 20 and 23 start their own mock
   APIs, small Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman
   on 18160, Proxmox VE on 18170, 18180 and 18200, CMDBs on 18190 and 18230),
-  and stop them when they end. 04 and 07 start their targets as Docker
-  containers on the local machine, from images pinned by digest, and 04
-  generates an SSH key pair for each run in its `out/` directory.
+  and stop them when they end. 04 and 07 start their targets as containers on
+  the local machine (Docker, Podman or a kind cluster), from images pinned by
+  digest, and 04 generates an SSH key pair for each run in its `out/`
+  directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 
 Two things to know:
 
-- **Podman instead of Docker is untested.** The examples call the `docker`
-  command, and the `community.docker.docker` connection plugin does too.
-  Podman's `docker` compatibility package may work; the entries weren't
-  tested with it.
+- **04 and 07 run on Docker, Podman or Kubernetes.** They start their
+  target hosts through `lab/runtime.sh`, which uses `LAB_RUNTIME` (`docker`,
+  `podman` or `kubernetes`), or else the first of Docker and Podman that
+  answers. With Podman or Kubernetes, the example adds the inventory overlay
+  in its `runtimes/<runtime>/`, which switches the hosts to the
+  `containers.podman.podman` or `kubernetes.core.kubectl` connection. Where
+  the runtime changes the output, the example has an
+  `expected-<runtime>.txt`, and CI compares with it. Kubernetes means a kind
+  cluster named `lab`: the images are built with Docker and loaded into it.
+  ```sh
+  LAB_RUNTIME=podman 04-connection-variables/run.sh | diff 04-connection-variables/expected-podman.txt -
+  ```
 - **"Ansible requires blocking IO on stdin/stdout/stderr"**: some terminals
   and sandboxes hand Ansible non-blocking output, and it refuses to run.
   The `run.sh` scripts send Ansible's output to files, which avoids it.

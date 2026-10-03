@@ -81,3 +81,48 @@ jobs:
         env:
           EXAMPLE: ${{ matrix.example }}
         run: PATH="$PWD/.venv/bin:$PATH" "$EXAMPLE/run.sh" | diff "$EXAMPLE/expected.txt" -
+
+  # The examples that start target hosts, on the other lab runtimes. The
+  # example job above runs them with Docker.
+  runtime:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - 04-connection-variables
+          - 07-facts-or-variables
+        runtime:
+          - podman
+          - kubernetes
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install ansible-core and the collections
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements.txt
+          .venv/bin/ansible-galaxy collection install -r requirements.yml -p collections
+      - name: Install kind and kubectl, and start a cluster
+        if: matrix.runtime == 'kubernetes'
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -sSLo "$HOME/bin/kind" https://github.com/kubernetes-sigs/kind/releases/download/v0.30.0/kind-linux-amd64
+          curl -sSLo "$HOME/bin/kubectl" https://dl.k8s.io/release/v1.34.1/bin/linux/amd64/kubectl
+          echo "517ab7fc89ddeed5fa65abf71530d90648d9638ef0c4cde22c2c11f8097b8889  $HOME/bin/kind" | sha256sum -c
+          echo "7721f265e18709862655affba5343e85e1980639395d5754473dafaadcaa69e3  $HOME/bin/kubectl" | sha256sum -c
+          chmod +x "$HOME/bin/kind" "$HOME/bin/kubectl"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          "$HOME/bin/kind" create cluster --name lab --wait 120s
+      - name: The example prints what the entry says
+        env:
+          EXAMPLE: ${{ matrix.example }}
+          LAB_RUNTIME: ${{ matrix.runtime }}
+        run: |
+          expected="$EXAMPLE/expected-$LAB_RUNTIME.txt"
+          [ -f "$expected" ] || expected="$EXAMPLE/expected.txt"
+          PATH="$PWD/.venv/bin:$PATH" "$EXAMPLE/run.sh" | diff "$expected" -

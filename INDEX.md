@@ -246,6 +246,15 @@ its output with the example's `expected.txt`.
 | Check rules across groups (one environment per host, nothing ungrouped) | an `assert` playbook on localhost reading `groups` and `group_names` | `25-testing-the-inventory-in-ci/policy.yml` |
 | Run the checks on every pull request | a GitHub Actions job calling `check.sh` | `25-testing-the-inventory-in-ci/ci/inventory.yml` |
 
+## Lab runtimes
+
+| Problem | Feature | Where |
+|---|---|---|
+| Start the same target hosts with Docker, Podman or Kubernetes | one script of verbs per runtime, chosen with `LAB_RUNTIME` | `lab/runtime.sh` |
+| Switch hosts to another connection plugin without editing the inventory | an inventory overlay loaded last, with only `ansible_connection` and its options | `04-connection-variables/runtimes/`, `07-facts-or-variables/runtimes/` |
+| Reach a container through Podman | `ansible_connection: containers.podman.podman`, `ansible_host` the container name | `04-connection-variables/runtimes/podman/` |
+| Reach a pod through kubectl | `ansible_connection: kubernetes.core.kubectl`, `ansible_kubectl_pod` the pod name | `04-connection-variables/runtimes/kubernetes/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -486,6 +495,9 @@ Each of these is shown, with its output in the example's `expected.txt`:
   (`25-testing-the-inventory-in-ci/pitfalls/whole-file-vault/`).
 - A quoted port (`"5432"`) loads as a string; only a type check sees it
   (`25-testing-the-inventory-in-ci/broken/wrong-type/`).
+- A missing container fails differently per connection: *Failed to create
+  temporary directory* with Docker, *Container 'app1' not found* with Podman
+  (`04-connection-variables/expected-podman.txt`).
 
 ## Testing patterns worth reusing
 
