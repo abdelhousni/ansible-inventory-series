@@ -1,0 +1,61 @@
+== 1. The CMDB holds app1, app2, db1: three sources, the same inventory
+  static: exit 0, app1(app, web-team) app2(app, web-team) db1(db, dba-team)
+  script: exit 0, app1(app, web-team) app2(app, web-team) db1(db, dba-team)
+  plugin: exit 0, app1(app, web-team) app2(app, web-team) db1(db, dba-team)
+  db1's cmdb_owner in --list: script "dba-team", plugin {"__ansible_unsafe": "dba-team"}
+
+== 2. The CMDB changes: app2 retired, app3 added, db1 handed to data-team
+  static: exit 0, app1(app, web-team) app2(app, web-team) db1(db, dba-team)
+  script: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+  plugin, from its cache: exit 0, app1(app, web-team) app2(app, web-team) db1(db, dba-team)
+  plugin, --flush-cache: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+  plugin, cache refreshed: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+
+== 3. How Ansible picked the plugin
+  INVENTORY_ENABLED(default) = ['host_list', 'script', 'auto', 'yaml', 'ini', 'toml']
+  host_list declined parsing plugin/hosts.cmdb.yml as it did not pass its verify_file() method
+  script declined parsing plugin/hosts.cmdb.yml as it did not pass its verify_file() method
+  Using inventory plugin 'cmdb' to process inventory source 'plugin/hosts.cmdb.yml'
+  Parsed plugin/hosts.cmdb.yml inventory source with auto plugin
+
+== 4. enable_plugins
+  without auto: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'yaml' plugin: Plugin configuration YAML file, not YAML inventory
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Invalid host pattern '---' supplied, '---' is normally a sign this is a YAML file.
+    [WARNING]: Unable to parse plugin/hosts.cmdb.yml as an inventory source
+    [WARNING]: No inventory was parsed, only implicit localhost is available
+  cmdb, yaml: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+  cmbd (typo), auto, yaml: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+    [WARNING]: Failed to load inventory plugin, skipping cmbd
+
+== 5. A plugin in inventory_plugins/ beside a playbook
+  ansible-inventory: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: inventory config 'hosts.cmdb.yml' specifies unknown plugin 'cmdb'
+    [WARNING]: Failed to parse inventory with 'yaml' plugin: Plugin configuration YAML file, not YAML inventory
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Invalid host pattern '---' supplied, '---' is normally a sign this is a YAML file.
+    [WARNING]: Unable to parse hosts.cmdb.yml as an inventory source
+    [WARNING]: No inventory was parsed, only implicit localhost is available
+  ansible-inventory --playbook-dir .: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+  ansible-playbook: exit 0
+    "msg": "app1 belongs to web-team"
+    "msg": "app3 belongs to web-team"
+    "msg": "db1 belongs to data-team"
+
+== 6. The CMDB is down
+  plugin, from its cache: exit 0, app1(app, web-team) app3(app, web-team) db1(db, data-team)
+  script: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'script' plugin: Inventory script returned non-zero exit code 1.
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Error parsing host definition '"""Inventory script: reads the CMDB and prints the inventory as JSON.': No closing quotation
+    [WARNING]: Unable to parse script/cmdb_inventory.py as an inventory source
+    [WARNING]: No inventory was parsed, only implicit localhost is available
+  plugin, --flush-cache: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: cannot read the CMDB at http://127.0.0.1:18150/hosts.json: <urlopen error [Errno 111] Connection refused>
+    [WARNING]: Failed to parse inventory with 'yaml' plugin: Plugin configuration YAML file, not YAML inventory
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Invalid host pattern '---' supplied, '---' is normally a sign this is a YAML file.
+    [WARNING]: Unable to parse plugin/hosts.cmdb.yml as an inventory source
+    [WARNING]: No inventory was parsed, only implicit localhost is available
+  script, any_unparsed_is_failed: exit 1, no hosts
+    [WARNING]: Failed to parse inventory with 'script' plugin: Inventory script returned non-zero exit code 1.
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Error parsing host definition '"""Inventory script: reads the CMDB and prints the inventory as JSON.': No closing quotation
+    [ERROR]: Completely failed to parse inventory source script/cmdb_inventory.py
+  cache files: out/cache/ansible_inventory_s1_cmdb_k<hash>
