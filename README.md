@@ -30,6 +30,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`22-group-by/`](22-group-by/) | [Item 22: Groups from facts with group_by](https://til.housni.eu/ansible/inventory-group-by.html) |
 | [`23-writing-an-inventory-plugin/`](23-writing-an-inventory-plugin/) | [Item 23: Writing an inventory plugin, after the trust order](https://til.housni.eu/ansible/inventory-writing-a-plugin-trust-order.html) |
 | [`24-inventory-in-aap/`](24-inventory-in-aap/) | [Item 24: Inventory in AAP: sources from a project, smart and constructed inventories](https://til.housni.eu/ansible/inventory-in-aap-sources-smart-constructed.html) |
+| [`25-testing-the-inventory-in-ci/`](25-testing-the-inventory-in-ci/) | [Item 25: Testing the inventory in CI, with a JSON Schema and policy checks](https://til.housni.eu/ansible/inventory-testing-in-ci-json-schema.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -65,9 +66,10 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | pytest (Python) | 9.1.1 | 23 | in the same virtualenv, from `requirements.txt`; runs the plugin's unit tests |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
 | theforeman.foreman | 5.13.0 | 16 | `requirements.yml`, installed into `collections/` (below) |
-| jq | 1.7 | 03, 08, 09, 10, 16, 18, 24 | your distribution's `jq` package |
+| jq | 1.7 | 03, 08, 09, 10, 16, 18, 24, 25 | your distribution's `jq` package |
 | community.general | 13.4.0 | 17 (the redirect pitfall) | `requirements.yml`, installed into `collections/` |
 | community.proxmox | 2.0.0 | 17, 18, 20 | `requirements.yml`, installed into `collections/` |
+| check-jsonschema | 0.38.2 | 25 | in the virtualenv, from the locked `requirements.txt` |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
 
@@ -84,13 +86,13 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 14, 21, 22 and
-  24 connect to every host locally. 15 to 20 and 23 start their own mock APIs,
-  small Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on
-  18160, Proxmox VE on 18170, 18180 and 18200, CMDBs on 18190 and 18230), and
-  stop them when they end. 04 and 07 start their targets as Docker containers
-  on the local machine, from images pinned by digest, and 04 generates an SSH
-  key pair for each run in its `out/` directory.
+- **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 14, 21, 22, 24
+  and 25 connect to every host locally. 15 to 20 and 23 start their own mock
+  APIs, small Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman
+  on 18160, Proxmox VE on 18170, 18180 and 18200, CMDBs on 18190 and 18230),
+  and stop them when they end. 04 and 07 start their targets as Docker
+  containers on the local machine, from images pinned by digest, and 04
+  generates an SSH key pair for each run in its `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 

@@ -64,6 +64,7 @@ jobs:
           - 22-group-by
           - 23-writing-an-inventory-plugin
           - 24-inventory-in-aap
+          - 25-testing-the-inventory-in-ci
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

@@ -1,0 +1,4 @@
+---
+# postgresql_max_connections forgotten.
+postgresql_port: 5432
+postgresql_password: "{{ vault_postgresql_password }}"

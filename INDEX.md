@@ -236,6 +236,16 @@ its output with the example's `expected.txt`.
 | Replace a smart inventory's `host_filter` | a pattern or `--limit` on a group, or a `groups` condition in a constructed inventory | `24-inventory-in-aap/run.sh` |
 | Fail an inventory build when a limit matches nothing | `ANSIBLE_HOST_PATTERN_MISMATCH=error`, as AWX sets | `24-inventory-in-aap/run.sh` |
 
+## Testing the inventory in CI
+
+| To… | Use | Where |
+|---|---|---|
+| Check required variables, types and allowed values per group | `ansible-inventory --list` reshaped with `jq` to `{group: {host: vars}}`, validated by `check-jsonschema` | `25-testing-the-inventory-in-ci/check.sh`, `schema/` |
+| Fail CI when a secret is committed in clear | schema `patternProperties`: `vault_*` must be an encrypted object, `*password` an alias to one | `25-testing-the-inventory-in-ci/schema/inventory.schema.json` |
+| Check the inventory without the vault password | values encrypted with `encrypt_string`, which `--list` prints as `{"__ansible_vault": …}` | `25-testing-the-inventory-in-ci/inventory/group_vars/db/vault.yml` |
+| Check rules across groups (one environment per host, nothing ungrouped) | an `assert` playbook on localhost reading `groups` and `group_names` | `25-testing-the-inventory-in-ci/policy.yml` |
+| Run the checks on every pull request | a GitHub Actions job calling `check.sh` | `25-testing-the-inventory-in-ci/ci/inventory.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -468,6 +478,14 @@ Each of these is shown, with its output in the example's `expected.txt`:
   that fails with `strict: true` only warns while the inputs parse; the run
   fails through the limit, or with `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED`
   (`24-inventory-in-aap/pitfalls/`).
+- A JSON Schema validates one host's variables but can't compare groups: a host
+  in both `prod` and `staging` passes it, and only the policy playbook fails
+  (`25-testing-the-inventory-in-ci/broken/two-environments/`).
+- A `vault.yml` encrypted as a whole stops `ansible-inventory` without the
+  password: *Attempting to decrypt but no vault secrets found*
+  (`25-testing-the-inventory-in-ci/pitfalls/whole-file-vault/`).
+- A quoted port (`"5432"`) loads as a string; only a type check sees it
+  (`25-testing-the-inventory-in-ci/broken/wrong-type/`).
 
 ## Testing patterns worth reusing
 
@@ -499,3 +517,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Unit-test an inventory plugin without a server | pytest, `unittest.mock.patch` on `open_url`, `inventory_loader.get()` with a `conftest.py` that sets up the collection loader | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/tests/unit/` |
 | Test a token-protected API | a mock that answers 401 without the test-only token and logs whether each request had it | `23-writing-an-inventory-plugin/mock/cmdb.py` |
 | Run what a controller runs, without the controller | the same `ansible-inventory` arguments and environment variables, read from its source | `24-inventory-in-aap/run.sh` |
+| Show one failure per case without copying the whole inventory | `broken/<case>/` holds only the changed files, laid over a copy of `inventory/` by `run.sh` | `25-testing-the-inventory-in-ci/run.sh` |

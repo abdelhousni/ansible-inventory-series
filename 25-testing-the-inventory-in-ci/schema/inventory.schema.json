@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Inventory variables, per group, host by host",
+  "description": "Validates inventory.json, built by run.sh from ansible-inventory --list: {group: {host: hostvars}}.",
+  "type": "object",
+  "required": ["all", "app", "db"],
+  "properties": {
+    "all": {"additionalProperties": {"$ref": "#/$defs/any_host"}},
+    "app": {"additionalProperties": {"$ref": "#/$defs/app_host"}},
+    "db": {"additionalProperties": {"$ref": "#/$defs/db_host"}}
+  },
+  "$defs": {
+    "any_host": {
+      "type": "object",
+      "required": ["env"],
+      "properties": {
+        "env": {"enum": ["prod", "staging"]}
+      },
+      "patternProperties": {
+        "^vault_": {"$ref": "#/$defs/encrypted"},
+        "^(?!vault_).*(password|secret|token)$": {"anyOf": [{"$ref": "#/$defs/alias"}, {"$ref": "#/$defs/encrypted"}]}
+      }
+    },
+    "app_host": {
+      "type": "object",
+      "required": ["app_port", "app_log_level"],
+      "properties": {
+        "app_port": {"type": "integer", "minimum": 1024, "maximum": 65535},
+        "app_log_level": {"enum": ["debug", "info", "warning", "error"]}
+      }
+    },
+    "db_host": {
+      "type": "object",
+      "required": ["postgresql_port", "postgresql_max_connections", "postgresql_password"],
+      "properties": {
+        "postgresql_port": {"type": "integer", "minimum": 1024, "maximum": 65535},
+        "postgresql_max_connections": {"type": "integer", "minimum": 1}
+      }
+    },
+    "alias": {
+      "description": "A reference to a vault_ variable, as in item 10.",
+      "type": "string",
+      "pattern": "^\\{\\{ vault_[a-z0-9_]+ \\}\\}$"
+    },
+    "encrypted": {
+      "description": "A value encrypted with ansible-vault encrypt_string, as ansible-inventory prints it without the password.",
+      "type": "object",
+      "required": ["__ansible_vault"],
+      "properties": {"__ansible_vault": {"type": "string", "pattern": "^\\$ANSIBLE_VAULT;"}},
+      "additionalProperties": false
+    }
+  }
+}

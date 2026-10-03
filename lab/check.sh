@@ -35,7 +35,7 @@ if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null;
 else
   ko "requests in .venv (16, 17, 18, 20)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
-command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18, 24)" || ko "jq (03, 08, 09, 10, 16, 18, 24)" "install your distribution's jq package"
+command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18, 24, 25)" || ko "jq (03, 08, 09, 10, 16, 18, 24, 25)" "install your distribution's jq package"
 for c in general proxmox; do
   if [ -d "collections/ansible_collections/community/$c" ]; then
     ok "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))"
@@ -48,6 +48,11 @@ if [ -x .venv/bin/python ] && .venv/bin/python -c 'import pytest' 2>/dev/null; t
   ok "pytest in .venv (23)"
 else
   ko "pytest in .venv (23)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+fi
+if [ -x .venv/bin/check-jsonschema ] && .venv/bin/check-jsonschema --version 2>/dev/null | grep -q '0.38.2'; then
+  ok "check-jsonschema 0.38.2 in .venv (25)"
+else
+  ko "check-jsonschema 0.38.2 in .venv (25)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"

@@ -1,0 +1,67 @@
+== The document the schema validates: {group: {host: variables}}
+  app: app1, stg-app1
+  db: db1, stg-db1
+  prod: app1, db1
+  staging: stg-app1, stg-db1
+  all: app1, db1, stg-app1, stg-db1
+  db1 has: env, postgresql_max_connections, postgresql_password, postgresql_port, vault_postgresql_password
+  vault_postgresql_password, without the password: __ansible_vault, $ANSIBLE_VAULT…
+
+== inventory/
+  schema: ok
+  policy: ok
+  exit 0
+
+== broken/bad-enum: A misspelled environment, and a log level the app does not know.
+  schema: FAILED
+    $.all['stg-app1'].env: 'stage' is not one of ['prod', 'staging']
+    $.all['stg-db1'].env: 'stage' is not one of ['prod', 'staging']
+    $.app['stg-app1'].app_log_level: 'verbose' is not one of ['debug', 'info', 'warning', 'error']
+  policy: ok
+  exit 1
+
+== broken/missing-variable: postgresql_max_connections forgotten.
+  schema: FAILED
+    $.db.db1: 'postgresql_max_connections' is a required property
+    $.db['stg-db1']: 'postgresql_max_connections' is a required property
+  policy: ok
+  exit 1
+
+== broken/no-environment: app2 added to app, forgotten in prod.
+  schema: FAILED
+    $.all.app2: 'env' is a required property
+  policy: FAILED
+    app2 is in 0 of prod, staging
+  exit 1
+
+== broken/secret-in-clear: Meant to be encrypted, committed in clear.
+  schema: FAILED
+    $.all.db1.vault_postgresql_password: 'S3cret-db' is not of type 'object'
+    $.all['stg-db1'].vault_postgresql_password: 'S3cret-db' is not of type 'object'
+  policy: ok
+  exit 1
+
+== broken/two-environments: app1 copied into staging and left in prod.
+  schema: ok
+  policy: FAILED
+    app1 is in 2 of prod, staging
+  exit 1
+
+== broken/ungrouped: db2 added under all, in no group.
+  schema: FAILED
+    $.all.db2: 'env' is a required property
+  policy: FAILED
+    db2 in no group but all
+  exit 1
+
+== broken/wrong-type: The port quoted: a string, not an integer.
+  schema: FAILED
+    $.db.db1.postgresql_port: '5432' is not of type 'integer'
+    $.db['stg-db1'].postgresql_port: '5432' is not of type 'integer'
+  policy: ok
+  exit 1
+
+== pitfalls/whole-file-vault: vault.yml encrypted as a whole, as in item 10
+  ansible-inventory: FAILED
+    [ERROR]: Attempting to decrypt but no vault secrets found.
+  exit 1
