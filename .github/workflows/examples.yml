@@ -26,3 +26,27 @@ jobs:
             --exclude-newer 2026-10-01T00:00:00Z --generate-hashes \
             -o requirements.txt --quiet
           git diff --exit-code -- requirements.txt
+
+  example:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - 01-hosts-and-groups
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install ansible-core and the collections
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --require-hashes -r requirements.txt
+          .venv/bin/ansible-galaxy collection install -r requirements.yml -p collections
+      - name: The example prints what the entry says
+        env:
+          EXAMPLE: ${{ matrix.example }}
+        run: PATH="$PWD/.venv/bin:$PATH" "$EXAMPLE/run.sh" | diff "$EXAMPLE/expected.txt" -

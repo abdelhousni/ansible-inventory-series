@@ -6,6 +6,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 
 | Directory | Entry |
 |---|---|
+| [`01-hosts-and-groups/`](01-hosts-and-groups/) | [Item 1: Hosts, groups, and the all and ungrouped groups](https://til.housni.eu/ansible/inventory-hosts-groups-all-ungrouped.html) |
 
 ## Running them
 
