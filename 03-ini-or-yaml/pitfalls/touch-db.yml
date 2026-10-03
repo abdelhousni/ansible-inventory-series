@@ -1,0 +1,8 @@
+---
+# A play on the postgresql group, to see what a broken inventory does to it.
+- name: Ping the database servers
+  hosts: postgresql
+  gather_facts: false
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:
