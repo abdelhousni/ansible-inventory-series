@@ -5,6 +5,8 @@ til.housni.eu (abdelhousni/til, `ansible/*.md`). Each example is `NN-name/`
 with a `run.sh`, an `expected.txt`, a README, a CI matrix entry, a row in
 the root README table, and rows in `INDEX.md` for each technique and
 pitfall it shows. CI fails if an example directory has no row there.
+An example that needs a new tool or collection adds it to the README's
+"Local lab" table and to `lab/check.sh`.
 
 ## Write, review and refactor with the Lola Ansible skills
 
