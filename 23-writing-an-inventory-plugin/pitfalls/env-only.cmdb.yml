@@ -1,0 +1,3 @@
+---
+# Nothing but the plugin's name: the URL and the token come from CMDB_URL and CMDB_TOKEN.
+plugin: example.cmdb.cmdb

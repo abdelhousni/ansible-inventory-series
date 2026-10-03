@@ -1,0 +1,8 @@
+---
+# What to order from the manager: a size and a count, not a list of hosts.
+# The manager picks the names and addresses.
+vm_order:
+  prefix: web
+  count: 3
+  cpus: 2
+  memory_mb: 4096

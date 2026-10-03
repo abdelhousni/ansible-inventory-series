@@ -1,0 +1,19 @@
+---
+- name: Group by OS family, with no default for a host without facts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Add each host to the group of its OS family
+      ansible.builtin.group_by:
+        key: os_{{ ansible_facts.os_family }}
+
+- name: Run on every host again
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Record that the host ran this play, and the groups it is in
+      ansible.builtin.copy:
+        content: "{{ group_names | sort | join(' ') }}\n"
+        dest: "{{ playbook_dir }}/../out/no-default/{{ inventory_hostname }}"
+        mode: "0644"
+      delegate_to: localhost

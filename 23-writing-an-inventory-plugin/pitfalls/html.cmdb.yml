@@ -1,0 +1,4 @@
+---
+# A URL that answers with an HTML page, as a login portal would.
+plugin: example.cmdb.cmdb
+url: http://127.0.0.1:18230/html

@@ -1,0 +1,13 @@
+---
+# The token comes from CMDB_TOKEN, set by run.sh: never write it here.
+plugin: example.cmdb.cmdb
+url: http://127.0.0.1:18230/api/servers
+strict: true
+compose:
+  ansible_host: cmdb_address
+keyed_groups:
+  - key: cmdb_env
+    prefix: env
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: out/cache
