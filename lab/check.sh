@@ -35,6 +35,11 @@ if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null;
 else
   ko "requests in .venv (16)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
+if [ -x .venv/bin/python ] && .venv/bin/python -c 'import pytest' 2>/dev/null; then
+  ok "pytest in .venv (23)"
+else
+  ko "pytest in .venv (23)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+fi
 command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16)" || ko "jq (03, 08, 09, 10, 16)" "install your distribution's jq package"
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"

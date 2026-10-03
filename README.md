@@ -22,6 +22,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
 | [`16-foreman-inventory/`](16-foreman-inventory/) | [Item 16: The Foreman/Satellite dynamic inventory plugin](https://til.housni.eu/ansible/foreman-dynamic-inventory-plugin.html) |
+| [`23-writing-an-inventory-plugin/`](23-writing-an-inventory-plugin/) | [Item 23: Writing an inventory plugin, after the trust order](https://til.housni.eu/ansible/inventory-writing-a-plugin-trust-order.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -54,6 +55,7 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | requests (Python) | 2.34.2 | 16 | in the same virtualenv, from `requirements.txt`; the Foreman inventory plugin imports it |
+| pytest (Python) | 9.1.1 | 23 | in the same virtualenv, from `requirements.txt`; runs the plugin's unit tests |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
 | theforeman.foreman | 5.13.0 | 16 | `requirements.yml`, installed into `collections/` (below) |
 | jq | 1.7 | 03, 08, 09, 10, 16 | your distribution's `jq` package |

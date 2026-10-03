@@ -1,0 +1,16 @@
+---
+namespace: example
+name: cmdb
+version: 1.0.0
+readme: README.md
+authors:
+  - abdel.h (@abdelhousni)
+description: An inventory plugin for the example CMDB of the Ansible inventory from scratch series.
+license:
+  - GPL-3.0-or-later
+tags:
+  - infrastructure
+  - inventory
+repository: https://github.com/abdelhousni/ansible-inventory-series
+build_ignore:
+  - tests/output
