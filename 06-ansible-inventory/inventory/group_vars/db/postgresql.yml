@@ -1,0 +1,4 @@
+---
+# Planted: left over from an upgrade test. db is a child of postgresql, so
+# this value replaces postgresql's "16" for every host of db.
+postgresql_version: "15"

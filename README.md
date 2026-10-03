@@ -11,6 +11,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`03-ini-or-yaml/`](03-ini-or-yaml/) | [Item 3: INI or YAML for the hosts file](https://til.housni.eu/ansible/inventory-ini-or-yaml-hosts-file.html) |
 | [`04-connection-variables/`](04-connection-variables/) | [Item 4: Connection variables, with ssh, docker and local](https://til.housni.eu/ansible/inventory-connection-variables-ssh-docker-local.html) |
 | [`05-environments/`](05-environments/) | [Item 5: Environments, separate directories or child groups](https://til.housni.eu/ansible/inventory-environments-directories-or-groups.html) |
+| [`06-ansible-inventory/`](06-ansible-inventory/) | [Item 6: Checking what Ansible sees with ansible-inventory](https://til.housni.eu/ansible/inventory-checking-with-ansible-inventory.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with

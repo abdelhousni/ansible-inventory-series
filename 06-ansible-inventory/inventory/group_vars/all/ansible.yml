@@ -1,0 +1,4 @@
+---
+# None of these hosts exists: every one runs on the local machine.
+ansible_connection: local
+ansible_python_interpreter: "{{ ansible_playbook_python }}"

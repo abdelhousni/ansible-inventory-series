@@ -50,6 +50,17 @@ its output with the example's `expected.txt`.
 | Keep both environments in one inventory | `prod`/`staging` groups beside functional groups (`app`, `db`) | `05-environments/single/hosts.yml` |
 | Run a play on one environment of a single inventory | `--limit staging`, or `hosts: app:&staging` | `05-environments/run.sh`, `app_staging.yml` |
 | Give the environment's value precedence over a functional group's | rely on name order, or `ansible_group_priority` in the hosts file | `05-environments/precedence/` |
+## Checking what Ansible sees
+
+| To… | Use | Where |
+|---|---|---|
+| Find a host in the wrong group | `ansible-inventory --graph`, or `--graph <group>` for one branch | `06-ansible-inventory/run.sh` |
+| Check that a group exists before blaming its `group_vars/` | `ansible-inventory --graph <group>` fails for an unknown group | `06-ansible-inventory/run.sh` |
+| See which group sets a variable, and which value wins | `ansible-inventory --graph --vars <group>` | `06-ansible-inventory/run.sh` |
+| See the merged variables of one host | `ansible-inventory --host <host>` | `06-ansible-inventory/run.sh` |
+| See variables per group, as they're written | `ansible-inventory --list --export` | `06-ansible-inventory/run.sh` |
+| Dump the inventory as YAML, or to a file | `--list --yaml`, `--list --output <file>` | `06-ansible-inventory/run.sh` |
+| Include the `group_vars/` beside a playbook | `ansible-inventory --playbook-dir <dir>` | `06-ansible-inventory/run.sh` |
 
 ## Pitfalls recorded
 
@@ -93,6 +104,20 @@ Each of these is shown, with its output in the example's `expected.txt`:
   ordinary variable (`05-environments/precedence/priority-in-group-vars/`).
 - A misspelled `--limit` only warns about the pattern, then fails with
   *no hosts to target* (`05-environments/run.sh`).
+- `ansible-inventory --graph` and `--host` ignore `--limit`; `--list` obeys
+  it, and keeps an emptied group in its parent's `children` while dropping
+  the group's own entry (`06-ansible-inventory/`).
+- `--list --yaml` prints a host's variables under the first group it
+  appears in, and `{}` under the others (`06-ansible-inventory/`).
+- `ansible-inventory` shows variables unrendered, such as
+  `"{{ ansible_playbook_python }}"` (`06-ansible-inventory/`).
+- The implicit localhost answers `--host localhost` but is absent from
+  `--list` and `--graph` (`06-ansible-inventory/`).
+- `group_vars/` beside a playbook reach every play's hosts, but
+  `ansible-inventory` shows them only with `--playbook-dir`
+  (`06-ansible-inventory/playbooks/`).
+- `--toml` fails without the `tomli-w` Python library, which ansible-core
+  doesn't install (`06-ansible-inventory/`).
 
 ## Testing patterns worth reusing
 
@@ -104,3 +129,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
+| Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |

@@ -1,0 +1,4 @@
+---
+# Planted: the group is called backup, so this directory is never read.
+backup_schedule: daily
+backup_keep: 7
