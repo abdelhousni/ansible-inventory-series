@@ -1,0 +1,3 @@
+---
+# What every app server gets unless its environment says otherwise.
+app_log_level: info

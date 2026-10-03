@@ -1,0 +1,3 @@
+---
+# Ignored here: the docs say it is only read from an inventory source.
+ansible_group_priority: 10
