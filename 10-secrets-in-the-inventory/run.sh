@@ -18,7 +18,7 @@ done
 
 echo
 echo "ansible-inventory --host db1, without the vault password:"
-for d in alias inline; do
+for d in alias no-alias inline; do
   ansible-inventory -i "$d/inventory" --host db1 >"out/$d-nopw.json" 2>"out/$d-nopw.err" && rc=0 || rc=$?
   if [ "$rc" = 0 ]; then
     echo "  $d: exit 0, postgresql_password is $(jq -r '.postgresql_password | if type == "object" then "an encrypted blob (" + (keys | join(",")) + ")" else type end' "out/$d-nopw.json")"
@@ -29,7 +29,7 @@ done
 
 echo
 echo "ansible-inventory --host db1, with the vault password:"
-for d in alias inline; do
+for d in alias no-alias inline; do
   ansible-inventory -i "$d/inventory" --host db1 "${pw[@]}" >"out/$d-pw.json" 2>/dev/null
   echo "  $d: keys $(jq -r 'keys | map(select(startswith("ansible_") | not)) | join(", ")' "out/$d-pw.json"); the secret is $(clear "out/$d-pw.json" S3cret-db)"
 done
