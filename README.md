@@ -21,6 +21,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
 | [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
+| [`20-inventory-cache-performance/`](20-inventory-cache-performance/) | [Item 20: The inventory cache for speed, request counts and timeouts](https://til.housni.eu/ansible/inventory-cache-performance.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -53,6 +54,8 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
+| community.proxmox | 2.0.0 | 20 | `requirements.yml`, installed into `collections/` |
+| requests (Python) | 2.34.2 | 20 | in the same virtualenv; the Proxmox inventory plugin imports it |
 | jq | 1.7 | 03, 08, 09, 10 | your distribution's `jq` package |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
@@ -72,7 +75,8 @@ python3.12 -m venv .venv
   directory.
 - **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 13 connect to every
   host locally. 15 starts its own mock CMDB, Python's `http.server` on
-  `127.0.0.1:18150`, and stops it when it ends. 04 and 07 start their targets as Docker containers on the
+  `127.0.0.1:18150`, and stops it when it ends. 20 starts two mock Proxmox
+  VE APIs, on ports 18200 and 18201, and stops them too. 04 and 07 start their targets as Docker containers on the
   local machine, from images pinned by digest, and 04 generates an SSH key
   pair for each run in its `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command

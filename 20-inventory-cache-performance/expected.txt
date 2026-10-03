@@ -1,0 +1,25 @@
+== 1. The mock: 2 nodes, 120 guests, 60 of them tagged web
+  guest lists only: 60 hosts, 7 requests
+  want_facts: 60 hosts, 407 requests
+  want_post_filter_facts: 60 hosts, 207 requests
+
+== 2. cache: true with the jsonfile cache plugin
+  first run, cache empty: 207 requests
+  second run: 60 hosts, 1 request: POST /access/ticket
+  cache files: 1
+  --flush-cache: 207 requests
+  cache file two hours old, cache_timeout 3600: 207 requests
+  next run: 1 request
+  cache: true with the default plugin, memory:
+    207 requests, then 207 again
+
+== 3. Wall time, 20 ms per request
+  uncached run at least 207 x 20 ms: yes
+  cached run under half the uncached one: yes
+
+== 4. A slow or absent API
+  /nodes 3 s late: exit 0, 120 hosts, waited at least 3 s: yes
+  the same under timeout 2: exit 124
+  API down, cache warm, password: exit 0, 0 hosts
+    Connection refused
+  API down, cache warm, API token: exit 0, 60 hosts
