@@ -87,7 +87,7 @@ its output with the example's `expected.txt`.
 |---|---|---|
 | Know which inventory level wins | host, then the deepest group, then groups of the same depth by name (`ansible_group_priority` first), then `all` | `09-inventory-precedence/levels/` |
 | Break a tie between groups at the same depth | `ansible_group_priority` in the hosts file | `09-inventory-precedence/priority/same-depth/` |
-| Find which group gave a host its value | `ansible-inventory --graph --vars`: the group's own value sits under the group, the host's merged value under the host | `09-inventory-precedence/conflict/before/` |
+| Find which group gave a host its value | `ansible-inventory --graph --vars`: the group's own value is listed after its hosts, the host's merged value nested under the host | `09-inventory-precedence/conflict/before/` |
 | Let a group win over a deeper one | move it to the same depth, then give it `ansible_group_priority` | `09-inventory-precedence/conflict/restructured/` |
 
 ## Pitfalls recorded
