@@ -60,6 +60,7 @@ jobs:
           - 18-constructed
           - 19-inventory-cache-stale-data
           - 20-inventory-cache-performance
+          - 21-add-host
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

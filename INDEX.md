@@ -194,6 +194,15 @@ its output with the example's `expected.txt`.
 | Bound how old the cached inventory may get | `cache_timeout:` in seconds (3600 by default, 0 for never) | `20-inventory-cache-performance/inventory/cached.proxmox.yml` |
 | Stop waiting for a slow inventory API | an outer limit such as `timeout 2 ansible-inventory …`: the plugin has no timeout option | `20-inventory-cache-performance/run.sh` |
 
+## Hosts created during the run
+
+| Problem | Feature | Where |
+|---|---|---|
+| Configure VMs in the same run that creates them | `ansible.builtin.add_host` in the provisioning play, a play on the new group after it | `21-add-host/site.yml` |
+| Give an added host groups and variables | `groups:` and any other key of `add_host` (`ansible_host`, …) | `21-add-host/provision.yml` |
+| Give a group created by `add_host` its variables | `group_vars/<group>/` in the inventory: it applies to the added hosts | `21-add-host/inventory/group_vars/web/` |
+| Add one host per host of the play | `add_host` with a `loop`, over `groups['<group>']` | `21-add-host/pitfalls/once-per-play/add.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -396,6 +405,16 @@ Each of these is shown, with its output in the example's `expected.txt`:
   exit 0; with an API token it reads the cache (`20-inventory-cache-performance/run.sh`).
 - The Proxmox plugin sets no timeout on its requests: a slow API makes
   `ansible-inventory` wait as long as it takes (`20-inventory-cache-performance/pitfalls/slow-api.proxmox.yml`).
+- `add_host` without a loop runs once per play, on the first host, not once
+  per host (`21-add-host/pitfalls/once-per-play/`).
+- A host added by `add_host` joins `ansible_play_hosts` of the play that
+  added it, though the play's tasks don't run on it
+  (`21-add-host/pitfalls/once-per-play/`).
+- Hosts added by `add_host` stay out of a run with `--limit <manager>`; a
+  `--limit` naming them warns *Could not match* but still lets them in, and a
+  `--limit` naming only them fails with exit 1 (`21-add-host/run.sh`).
+- `add_host` leaves nothing behind: `ansible-inventory` and the next run
+  don't see the added hosts (`21-add-host/run.sh`).
 
 ## Testing patterns worth reusing
 
@@ -422,3 +441,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show what a cache saves without flaky timings | a fixed latency per request in the mock; wall time checked as a lower bound and a ratio | `20-inventory-cache-performance/run.sh` |
 | Test a large inventory without a large fixture in Git | a script generating the mock's responses at each run | `20-inventory-cache-performance/mock/generate.py` |
 | Expire a cache without waiting | `touch -d '2 hours ago'` on the cache file | `20-inventory-cache-performance/run.sh` |
+| Show which hosts each play reached | each play writes one file per host in `out/`, `run.sh` lists them | `21-add-host/run.sh` |
