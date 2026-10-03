@@ -115,6 +115,7 @@ Two things to know:
   ```sh
   LAB_RUNTIME=podman 04-connection-variables/run.sh | diff 04-connection-variables/expected-podman.txt -
   ```
+  [`lab/RUNTIMES.md`](lab/RUNTIMES.md) has the step-by-step setup of each runtime, WSL2 included.
 - **"Ansible requires blocking IO on stdin/stdout/stderr"**: some terminals
   and sandboxes hand Ansible non-blocking output, and it refuses to run.
   The `run.sh` scripts send Ansible's output to files, which avoids it.
