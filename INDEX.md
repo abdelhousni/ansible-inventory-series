@@ -139,6 +139,16 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## Testing the inventory in CI
+
+| To… | Use | Where |
+|---|---|---|
+| Check required variables, types and allowed values per group | `ansible-inventory --list` reshaped with `jq` to `{group: {host: vars}}`, validated by `check-jsonschema` | `25-testing-the-inventory-in-ci/check.sh`, `schema/` |
+| Fail CI when a secret is committed in clear | schema `patternProperties`: `vault_*` must be an encrypted object, `*password` an alias to one | `25-testing-the-inventory-in-ci/schema/inventory.schema.json` |
+| Check the inventory without the vault password | values encrypted with `encrypt_string`, which `--list` prints as `{"__ansible_vault": …}` | `25-testing-the-inventory-in-ci/inventory/group_vars/db/vault.yml` |
+| Check rules across groups (one environment per host, nothing ungrouped) | an `assert` playbook on localhost reading `groups` and `group_names` | `25-testing-the-inventory-in-ci/policy.yml` |
+| Run the checks on every pull request | a GitHub Actions job calling `check.sh` | `25-testing-the-inventory-in-ci/ci/inventory.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -280,6 +290,14 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A `README` with no extension in an inventory directory only warns and the
   other sources load, unlike in `group_vars/`
   (`14-several-inventories/pitfalls/readme/`).
+- A JSON Schema validates one host's variables but can't compare groups: a host
+  in both `prod` and `staging` passes it, and only the policy playbook fails
+  (`25-testing-the-inventory-in-ci/broken/two-environments/`).
+- A `vault.yml` encrypted as a whole stops `ansible-inventory` without the
+  password: *Attempting to decrypt but no vault secrets found*
+  (`25-testing-the-inventory-in-ci/pitfalls/whole-file-vault/`).
+- A quoted port (`"5432"`) loads as a string; only a type check sees it
+  (`25-testing-the-inventory-in-ci/broken/wrong-type/`).
 
 ## Testing patterns worth reusing
 
@@ -299,3 +317,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
+| Show one failure per case without copying the whole inventory | `broken/<case>/` holds only the changed files, laid over a copy of `inventory/` by `run.sh` | `25-testing-the-inventory-in-ci/run.sh` |

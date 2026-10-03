@@ -1,0 +1,23 @@
+---
+# Rules about the inventory's shape that a JSON Schema can't express: they
+# compare groups with each other. Runs on localhost, connects to no host.
+- name: Check the inventory's groups
+  hosts: localhost
+  gather_facts: false
+  vars:
+    policy_env_groups: [prod, staging]
+  tasks:
+    - name: No host is only in ungrouped
+      ansible.builtin.assert:
+        that: groups['ungrouped'] | length == 0
+        fail_msg: "{{ groups['ungrouped'] | join(', ') }} in no group but all"
+        quiet: true
+
+    - name: Every host is in exactly one environment group
+      ansible.builtin.assert:
+        that: hostvars[item].group_names | intersect(policy_env_groups) | length == 1
+        fail_msg: >-
+          {{ item }} is in {{ hostvars[item].group_names | intersect(policy_env_groups) | length }}
+          of {{ policy_env_groups | join(', ') }}
+        quiet: true
+      loop: "{{ groups['all'] }}"

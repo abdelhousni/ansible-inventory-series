@@ -1,0 +1,3 @@
+---
+# Meant to be encrypted, committed in clear.
+vault_postgresql_password: S3cret-db

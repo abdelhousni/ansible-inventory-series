@@ -21,6 +21,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
 | [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
+| [`25-testing-the-inventory-in-ci/`](25-testing-the-inventory-in-ci/) | [Item 25: Testing the inventory in CI, with a JSON Schema and policy checks](https://til.housni.eu/ansible/inventory-testing-in-ci-json-schema.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -53,7 +54,8 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
-| jq | 1.7 | 03, 08, 09, 10 | your distribution's `jq` package |
+| check-jsonschema | 0.38.2 | 25 | in the virtualenv, from the locked `requirements.txt` |
+| jq | 1.7 | 03, 08, 09, 10, 25 | your distribution's `jq` package |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
 

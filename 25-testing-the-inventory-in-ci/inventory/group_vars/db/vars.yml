@@ -1,0 +1,5 @@
+---
+# Plaintext: every variable the role reads, secrets as aliases to vault.yml.
+postgresql_port: 5432
+postgresql_max_connections: 200
+postgresql_password: "{{ vault_postgresql_password }}"

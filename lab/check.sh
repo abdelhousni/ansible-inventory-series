@@ -25,7 +25,12 @@ else
 fi
 
 echo "Needed by some examples:"
-command -v jq >/dev/null && ok "jq (03, 08, 09, 10)" || ko "jq (03, 08, 09, 10)" "install your distribution's jq package"
+if [ -x .venv/bin/check-jsonschema ] && .venv/bin/check-jsonschema --version 2>/dev/null | grep -q '0.38.2'; then
+  ok "check-jsonschema 0.38.2 in .venv (25)"
+else
+  ko "check-jsonschema 0.38.2 in .venv (25)" ".venv/bin/pip install --require-hashes -r requirements.txt"
+fi
+command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 25)" || ko "jq (03, 08, 09, 10, 25)" "install your distribution's jq package"
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
 if ! command -v docker >/dev/null; then
