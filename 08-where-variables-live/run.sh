@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 rm -rf out
-mkdir -p out/messy out/tidy out/constants
+mkdir -p out/messy out/tidy out/adjacent out/constants
 pgvars() { ansible-inventory -i "$1/inventory" --host "$2" 2>/dev/null | jq -c 'with_entries(select(.key | startswith("pgconf")))'; }
 
 echo "messy, with group_vars/postgresql setting max_connections to 300:"
@@ -25,6 +25,14 @@ echo
 echo "tidy, with the safety switch: -e pgconf_allow_restart=true"
 ansible-playbook -i tidy/inventory tidy/site.yml -e pgconf_allow_restart=true >out/switch.log 2>&1
 echo "  $(grep -o -m 1 'restart allowed' out/switch.log)"
+
+echo
+echo "group_vars/ beside the playbook (250) and inside the role (999), inventory group_vars at 200:"
+ansible-playbook -i tidy/inventory adjacent/site.yml >out/adjacent.log 2>&1
+echo "  db1.conf: $(grep -v '^#' out/adjacent/db1.conf | paste -sd' ')"
+echo "  ansible-inventory --host db1: $(pgvars tidy db1 | jq -c '{pgconf_max_connections}')"
+echo "  with --playbook-dir adjacent: $(ansible-inventory -i tidy/inventory --playbook-dir adjacent --host db1 2>/dev/null \
+  | jq -c '{pgconf_max_connections}')"
 
 echo
 echo "a role with max_connections in vars/, group_vars/postgresql sets 300:"

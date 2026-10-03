@@ -115,6 +115,9 @@ Each of these is shown, with its output in the example's `expected.txt`:
   the play's 200 (`08-where-variables-live/messy/`).
 - Settings in a playbook or on the command line are invisible to
   `ansible-inventory --host` (`08-where-variables-live/messy/`).
+- `group_vars/` beside the playbook beats the inventory's `group_vars/`, and
+  `ansible-inventory` doesn't show it without `--playbook-dir`; a role's own
+  `group_vars/` is never read (`08-where-variables-live/adjacent/`).
 - A role's `vars/main.yml` beats every inventory variable; only `-e` overrides
   it (`08-where-variables-live/roles/pgconf_constants/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
