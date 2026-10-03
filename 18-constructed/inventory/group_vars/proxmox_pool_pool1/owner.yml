@@ -1,0 +1,4 @@
+---
+# The pool1 guests belong to team-a. Only a source that reads group_vars/
+# (use_vars_plugins) can group on this.
+owner: team-a

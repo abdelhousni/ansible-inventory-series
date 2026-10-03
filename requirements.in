@@ -1,1 +1,3 @@
 ansible-core==2.21.4
+# for the community.proxmox inventory plugin (18)
+requests

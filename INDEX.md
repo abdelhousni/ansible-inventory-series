@@ -114,6 +114,19 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Constructed groups and variables
+
+| Problem | Feature | Where |
+|---|---|---|
+| Turn Proxmox VE guests into hosts | `community.proxmox.proxmox` in a `*.proxmox.yml` source, `want_facts: true` | `18-constructed/inventory/10-pve.proxmox.yml` |
+| One group per tag, and one for guests without tags | `keyed_groups` on a list, `default([''])` with `default_value` | `18-constructed/inventory/20-constructed.yml` |
+| Group names without a leading `_` when the prefix is empty | `leading_separator: false` (for the whole source) | `18-constructed/inventory/20-constructed.yml` |
+| `key` alone instead of `key_` for an empty value | a dict key with `trailing_separator: false` | `18-constructed/inventory/20-constructed.yml` |
+| Group hosts by a condition on their variables | `groups:` with Jinja2 tests (`subset`, `eq`, `search`) | `18-constructed/inventory/20-constructed.yml` |
+| Set `ansible_host` from an IP in the guest's config | `compose`, also to name an expression reused by `groups:` | `18-constructed/inventory/20-constructed.yml` |
+| Group on a variable from `group_vars/` of a group another source built | a separate `constructed` source with `use_vars_plugins: true` | `18-constructed/inventory/group_vars/proxmox_pool_pool1/` |
+| Skip a separate source when only the plugin's own data counts | `keyed_groups`, `groups`, `compose` on the dynamic plugin itself | `18-constructed/direct/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -226,6 +239,16 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A play looping over a list of hosts in a variable runs one host after
   another, and `--limit <host>` skips it: only `--limit <manager>` runs it,
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
+- A list key that's undefined for a host is skipped without a word under
+  `strict: false`; an empty item in it gives a group named `tag_` without
+  `default_value` (`18-constructed/variants/defaults.yml`).
+- With an empty prefix, keyed groups start with `_` (`_os_debian`) unless
+  `leading_separator: false` (`18-constructed/variants/defaults.yml`).
+- The same `keyed_groups` on the proxmox plugin can't see `group_vars/`:
+  `owner_team_a` is missing, although the host gets `owner` (`18-constructed/direct/`).
+- `ansible-inventory --list` prints the plugin's values, and values composed
+  from them, as `{"__ansible_unsafe": …}`; `--host` prints plain strings
+  (`18-constructed/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
 
@@ -244,4 +267,5 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Test a dynamic inventory plugin without its server | a small Python mock of the API, started and stopped by `run.sh` | `18-constructed/mock/pve.py` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |

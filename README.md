@@ -19,6 +19,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`11-host-patterns/`](11-host-patterns/) | [Item 11: Targeting hosts with patterns, --limit and constructed groups](https://til.housni.eu/ansible/targeting-hosts-static-and-dynamic-inventory.html) |
 | [`12-limit-in-practice/`](12-limit-in-practice/) | [Item 12: --limit in practice: plays, run_once, facts of other hosts](https://til.housni.eu/ansible/inventory-limit-in-practice.html) |
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
+| [`18-constructed/`](18-constructed/) | [Item 18: ansible.builtin.constructed: keyed_groups, groups and compose on top of another source](https://til.housni.eu/ansible/inventory-constructed-keyed-groups-compose.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -51,7 +52,9 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
-| jq | 1.7 | 03, 08, 09, 10 | your distribution's `jq` package |
+| community.proxmox | 2.0.0 | 18 | `requirements.yml`, installed into `collections/` (below) |
+| requests (Python) | 2.32.5 | 18 | in the virtualenv, from `requirements.txt`; the proxmox inventory plugin needs it |
+| jq | 1.7 | 03, 08, 09, 10, 18 | your distribution's `jq` package |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
 
@@ -69,7 +72,7 @@ python3.12 -m venv .venv
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
 - **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 13 connect to every
-  host locally. 04 and 07 start their targets as Docker containers on the
+  host locally. 18 reads a mock Proxmox VE API it starts on `127.0.0.1:18180`. 04 and 07 start their targets as Docker containers on the
   local machine, from images pinned by digest, and 04 generates an SSH key
   pair for each run in its `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
