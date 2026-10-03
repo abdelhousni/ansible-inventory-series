@@ -159,6 +159,31 @@ its output with the example's `expected.txt`.
 | Short host names instead of FQDNs | `hostnames: [name.split('.')[0]]` | `16-foreman-inventory/inventory/` |
 | Stop asking Foreman on every run | `cache: true` with `cache_plugin: ansible.builtin.jsonfile`; `--flush-cache` to ask again | `16-foreman-inventory/inventory/cached.foreman.yml` |
 
+## Dynamic inventory from Proxmox VE
+
+| To… | Use | Where |
+|---|---|---|
+| Make each Proxmox guest a host | `community.proxmox.proxmox`, a `*.proxmox.yml` file | `17-proxmox-inventory/inventory/guests.proxmox.yml` |
+| Target guests by node, type, status or pool | the plugin's groups: `proxmox_<node>_<type>`, `proxmox_all_running`, `proxmox_pool_<pool>` | `17-proxmox-inventory/run.sh` |
+| Keep only some guests | `filters:` on `proxmox_status` and `proxmox_tags`, without `want_facts` | `17-proxmox-inventory/inventory/running-test.proxmox.yml` |
+| Get each guest's configuration as variables | `want_facts: true`, or `want_post_filter_facts: true` for fewer API calls | `17-proxmox-inventory/inventory/facts.proxmox.yml`, `post-filter-facts.proxmox.yml` |
+| Set `ansible_host` from the guest agent or the static IP | `compose:` over `proxmox_agent_interfaces`, `proxmox_ipconfig0`, `proxmox_net0` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| A group per Proxmox tag | `keyed_groups:` on `proxmox_tags_parsed` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| Fail when a source doesn't parse | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true` (`any_unparsed_is_failed`) | `17-proxmox-inventory/run.sh` |
+
+## Constructed groups and variables
+
+| Problem | Feature | Where |
+|---|---|---|
+| Turn Proxmox VE guests into hosts | `community.proxmox.proxmox` in a `*.proxmox.yml` source, `want_facts: true` | `18-constructed/inventory/10-pve.proxmox.yml` |
+| One group per tag, and one for guests without tags | `keyed_groups` on a list, `default([''])` with `default_value` | `18-constructed/inventory/20-constructed.yml` |
+| Group names without a leading `_` when the prefix is empty | `leading_separator: false` (for the whole source) | `18-constructed/inventory/20-constructed.yml` |
+| `key` alone instead of `key_` for an empty value | a dict key with `trailing_separator: false` | `18-constructed/inventory/20-constructed.yml` |
+| Group hosts by a condition on their variables | `groups:` with Jinja2 tests (`subset`, `eq`, `search`) | `18-constructed/inventory/20-constructed.yml` |
+| Set `ansible_host` from an IP in the guest's config | `compose`, also to name an expression reused by `groups:` | `18-constructed/inventory/20-constructed.yml` |
+| Group on a variable from `group_vars/` of a group another source built | a separate `constructed` source with `use_vars_plugins: true` | `18-constructed/inventory/group_vars/proxmox_pool_pool1/` |
+| Skip a separate source when only the plugin's own data counts | `keyed_groups`, `groups`, `compose` on the dynamic plugin itself | `18-constructed/direct/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -271,6 +296,16 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A play looping over a list of hosts in a variable runs one host after
   another, and `--limit <host>` skips it: only `--limit <manager>` runs it,
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
+- A list key that's undefined for a host is skipped without a word under
+  `strict: false`; an empty item in it gives a group named `tag_` without
+  `default_value` (`18-constructed/variants/defaults.yml`).
+- With an empty prefix, keyed groups start with `_` (`_os_debian`) unless
+  `leading_separator: false` (`18-constructed/variants/defaults.yml`).
+- The same `keyed_groups` on the proxmox plugin can't see `group_vars/`:
+  `owner_team_a` is missing, although the host gets `owner` (`18-constructed/direct/`).
+- `ansible-inventory --list` prints the plugin's values, and values composed
+  from them, as `{"__ansible_unsafe": …}`; `--host` prints plain strings
+  (`18-constructed/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
 - A static inventory copied from a CMDB keeps a retired host and an old
@@ -331,6 +366,15 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A Foreman source whose name doesn't end in `foreman.yml` or `foreman.yaml`
   is skipped with warnings, and the inventory is empty
   (`16-foreman-inventory/pitfalls/foreman-inventory.yml`).
+- One guest with an empty name makes the Proxmox source fail as a whole:
+  no host at all, warnings, exit code 0 (`17-proxmox-inventory/pitfalls/unnamed.proxmox.yml`).
+- `plugin: community.general.proxmox` is redirected to community.proxmox
+  with a deprecation warning, then refused by the plugin's own `choices`:
+  empty inventory, exit code 0 (`17-proxmox-inventory/pitfalls/redirect.proxmox.yml`).
+- Two guests with the same name make one host: the variables of the last
+  one read, the groups of both (`17-proxmox-inventory/run.sh`).
+- A filter on a fact that only `want_facts` provides errors for every guest
+  and keeps them all, with a warning each (`17-proxmox-inventory/pitfalls/tags-parsed.proxmox.yml`).
 
 ## Testing patterns worth reusing
 
@@ -349,6 +393,8 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
 | Test cache expiry without flaky timings | a 5-second `cache_timeout`, `sleep 6`, outcomes printed rather than times | `19-inventory-cache-stale-data/run.sh` |
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
+| Test a dynamic inventory plugin without its server | a small Python mock of the API, started and stopped by `run.sh` | `18-constructed/mock/pve.py` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
 | Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
+| Test an inventory plugin without its server | a mock of the API in Python, serving recorded responses and logging each request | `17-proxmox-inventory/mock/` |

@@ -56,6 +56,8 @@ jobs:
           - 14-several-inventories
           - 15-single-source-of-truth
           - 16-foreman-inventory
+          - 17-proxmox-inventory
+          - 18-constructed
           - 19-inventory-cache-stale-data
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

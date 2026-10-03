@@ -1,0 +1,7 @@
+---
+# Every named guest and node, with the plugin's default groups.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+filters:
+  - proxmox_name != ''
