@@ -1,0 +1,6 @@
+---
+profile: production
+# inline-vars/hosts.yml writes True, 0770 and no on purpose: the example
+# shows what YAML makes of them. ansible-lint's yaml rule flags all three.
+exclude_paths:
+  - inline-vars/hosts.yml

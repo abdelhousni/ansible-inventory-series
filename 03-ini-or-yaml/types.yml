@@ -1,0 +1,23 @@
+---
+# Writes the value and type of each postgresql_* variable db1 gets from the
+# inventory given with -i, to the file named by types_output (run.sh passes
+# it with -e). It runs on the implicit localhost and reads db1's variables
+# through hostvars.
+- name: Record db1's variables and their types
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Make out/
+      ansible.builtin.file:
+        path: out
+        state: directory
+        mode: "0755"
+
+    - name: Write the values and types
+      ansible.builtin.copy:
+        dest: "{{ types_output }}"
+        mode: "0644"
+        content: |
+          {% for name in hostvars['db1'] | select('match', '^postgresql_') | sort %}
+          {{ name }}: {{ hostvars['db1'][name] | to_json }} ({{ hostvars['db1'][name] | type_debug }})
+          {% endfor %}

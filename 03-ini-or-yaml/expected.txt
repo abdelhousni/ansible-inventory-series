@@ -1,0 +1,38 @@
+hosts.ini and hosts.yml: same ansible-inventory --list output
+
+inline-vars/host-line.ini, db1:
+  postgresql_archive: "no" (str)
+  postgresql_conf: {"max_connections": 200} (dict)
+  postgresql_fsync: true (bool)
+  postgresql_listen: ["10.10.0.1", "127.0.0.1"] (list)
+  postgresql_port: 5432 (int)
+  postgresql_socket_mode: "0770" (str)
+  postgresql_ssl: "true" (str)
+  postgresql_version: 16 (int)
+
+inline-vars/group-vars-section.ini, db1:
+  postgresql_archive: "no" (str)
+  postgresql_conf: {"max_connections": 200} (dict)
+  postgresql_fsync: true (bool)
+  postgresql_listen: ["10.10.0.1", "127.0.0.1"] (list)
+  postgresql_port: 5432 (int)
+  postgresql_socket_mode: "0770" (str)
+  postgresql_ssl: "true" (str)
+  postgresql_version: "16" (str)
+
+inline-vars/hosts.yml, db1:
+  postgresql_archive: false (bool)
+  postgresql_conf: {"max_connections": 200} (dict)
+  postgresql_fsync: true (bool)
+  postgresql_listen: ["10.10.0.1", "127.0.0.1"] (list)
+  postgresql_port: 5432 (int)
+  postgresql_socket_mode: 504 (int)
+  postgresql_ssl: true (bool)
+  postgresql_version: "16" (str)
+
+pitfalls/unquoted-space.ini:
+  Expected key=value host variable assignment, got: data
+  No inventory was parsed, only implicit localhost is available
+  exit 0, hosts: {"children":["ungrouped"]}
+  ansible-playbook: exit 0, skipping: no hosts matched
+  with ANSIBLE_INVENTORY_UNPARSED_FAILED=true: exit 1, No inventory was parsed, please check your configuration and options.
