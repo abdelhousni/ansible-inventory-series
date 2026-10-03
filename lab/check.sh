@@ -35,7 +35,7 @@ if [ -x .venv/bin/python ] && .venv/bin/python -c 'import requests' 2>/dev/null;
 else
   ko "requests in .venv (16, 17, 18, 20)" ".venv/bin/pip install --require-hashes -r requirements.txt"
 fi
-command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18)" || ko "jq (03, 08, 09, 10, 16, 18)" "install your distribution's jq package"
+command -v jq >/dev/null && ok "jq (03, 08, 09, 10, 16, 18, 24)" || ko "jq (03, 08, 09, 10, 16, 18, 24)" "install your distribution's jq package"
 for c in general proxmox; do
   if [ -d "collections/ansible_collections/community/$c" ]; then
     ok "community.$c in collections/ (17$([ $c = proxmox ] && echo ', 18, 20'))"

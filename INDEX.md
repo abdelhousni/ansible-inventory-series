@@ -226,6 +226,16 @@ its output with the example's `expected.txt`.
 | Fail on an undefined variable in `keyed_groups` | `strict: true` | `23-writing-an-inventory-plugin/pitfalls/rack-strict.cmdb.yml` |
 | Read a plugin's options and their environment variables | `ansible-doc -t inventory <fqcn> --json` | `23-writing-an-inventory-plugin/run.sh` |
 
+## Inventory in AWX and AAP
+
+| Problem | Feature | Where |
+|---|---|---|
+| Use an inventory kept in a repository in AAP | an inventory source from a project, its `source_path` passed to `ansible-inventory -i` | `24-inventory-in-aap/project/inventory/` |
+| See what an inventory update stores: group variables on groups, `all`'s as inventory variables | `ansible-inventory --list --export` | `24-inventory-in-aap/run.sh` |
+| Reproduce an AAP constructed inventory locally | `-i` each input, then `-i` the `constructed` `source_vars`, then `--limit` | `24-inventory-in-aap/constructed/` |
+| Replace a smart inventory's `host_filter` | a pattern or `--limit` on a group, or a `groups` condition in a constructed inventory | `24-inventory-in-aap/run.sh` |
+| Fail an inventory build when a limit matches nothing | `ANSIBLE_HOST_PATTERN_MISMATCH=error`, as AWX sets | `24-inventory-in-aap/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -451,6 +461,13 @@ Each of these is shown, with its output in the example's `expected.txt`:
   (`23-writing-an-inventory-plugin/run.sh`).
 - `keyed_groups` on a missing field silently makes no group unless
   `strict: true` (`23-writing-an-inventory-plugin/pitfalls/rack.cmdb.yml`).
+- In a constructed inventory, each input's `all` variables apply to every
+  host: the last input's `site` wins for the hosts of both
+  (`24-inventory-in-aap/run.sh`).
+- With AWX's `ANSIBLE_INVENTORY_UNPARSED_FAILED=True`, a constructed source
+  that fails with `strict: true` only warns while the inputs parse; the run
+  fails through the limit, or with `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED`
+  (`24-inventory-in-aap/pitfalls/`).
 
 ## Testing patterns worth reusing
 
@@ -481,3 +498,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Give local hosts different facts | recorded facts copied into a `jsonfile` fact cache with `fact_caching_timeout = 0` | `22-group-by/facts/`, `ansible.cfg` |
 | Unit-test an inventory plugin without a server | pytest, `unittest.mock.patch` on `open_url`, `inventory_loader.get()` with a `conftest.py` that sets up the collection loader | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/tests/unit/` |
 | Test a token-protected API | a mock that answers 401 without the test-only token and logs whether each request had it | `23-writing-an-inventory-plugin/mock/cmdb.py` |
+| Run what a controller runs, without the controller | the same `ansible-inventory` arguments and environment variables, read from its source | `24-inventory-in-aap/run.sh` |

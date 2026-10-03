@@ -1,0 +1,10 @@
+---
+# The source_vars of the AWX docs' demo, with the plugin's full name
+plugin: ansible.builtin.constructed
+strict: true
+use_vars_plugins: true
+groups:
+  shutdown: resolved_state == "shutdown"
+  shutdown_in_product_dev: resolved_state == "shutdown" and account_alias == "product_dev"
+compose:
+  resolved_state: state | default("running")
