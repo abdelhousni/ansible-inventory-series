@@ -114,6 +114,54 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Several inventory sources
+
+| Problem | Feature | Where |
+|---|---|---|
+| Mix static hosts and a script (CMDB, cloud API) in one inventory | one directory holding a YAML file and an executable script | `14-several-inventories/inventory/` |
+| See which sources Ansible parsed, in which order, with which plugin | `ansible-inventory --graph -vvv`, lines *Parsed … inventory source with … plugin* | `14-several-inventories/run.sh` |
+| Override a source's values with another source | a later source: last loaded wins, key by key; groups merge | `14-several-inventories/conflicts/` |
+| Combine two inventory directories in one run | `-i dir1 -i dir2`, loaded in the order given | `14-several-inventories/environments/` |
+| Keep notes or leftovers in an inventory directory | `.md`, `.txt`, `.retry`, `.cfg`, `.orig`, `~`, hidden files are skipped (`inventory_ignore_extensions`) | `14-several-inventories/inventory/` |
+| Fail when any source in a directory can't be parsed | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `14-several-inventories/run.sh` |
+
+## Inventory from the system that owns the data
+
+| Problem | Feature | Where |
+|---|---|---|
+| Read hosts from a CMDB or another API instead of copying them | an inventory plugin with a YAML configuration file (`plugin: <name>`) | `15-single-source-of-truth/plugin/hosts.cmdb.yml` |
+| Write a small inventory plugin | `BaseInventoryPlugin`, `verify_file()` on the file name, `parse()` with `_read_config_data()` | `15-single-source-of-truth/plugins/inventory/cmdb.py` |
+| Make Ansible find a plugin of your own | `inventory_plugins = <dir>` in `ansible.cfg` | `15-single-source-of-truth/ansible.cfg` |
+| Write an inventory script | an executable answering `--list` with `_meta.hostvars`, and `--host` | `15-single-source-of-truth/script/cmdb_inventory.py` |
+| See which plugin parsed a source, and which declined it | `ansible-inventory -vvv` | `15-single-source-of-truth/run.sh` |
+| Change which inventory plugins run, and in what order | `[inventory] enable_plugins`, or `ANSIBLE_INVENTORY_ENABLED` | `15-single-source-of-truth/run.sh` |
+| Keep the inventory when the source is down, and save API calls | `cache: true`, `cache_plugin: ansible.builtin.jsonfile`, `Cacheable` in the plugin | `15-single-source-of-truth/plugin/hosts.cmdb.yml` |
+| Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
+| Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
+
+## Foreman and Satellite
+
+| Problem | Feature | Where |
+|---|---|---|
+| Take the hosts from Foreman or Satellite | `theforeman.foreman.foreman` in a file ending in `foreman.yml`, loaded by `auto` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Keep the Foreman password out of the source file | `FOREMAN_USER` and `FOREMAN_PASSWORD` in the environment | `16-foreman-inventory/run.sh` |
+| Get Foreman's host parameters as variables | `want_params: true`; with `legacy_hostvars: true`, a `foreman_params` dict, looped over with `dict2items` | `16-foreman-inventory/inventory/`, `params.yml` |
+| Groups by location with the Hosts API | `keyed_groups` on `foreman_location_name` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Short host names instead of FQDNs | `hostnames: [name.split('.')[0]]` | `16-foreman-inventory/inventory/` |
+| Stop asking Foreman on every run | `cache: true` with `cache_plugin: ansible.builtin.jsonfile`; `--flush-cache` to ask again | `16-foreman-inventory/inventory/cached.foreman.yml` |
+
+## Dynamic inventory from Proxmox VE
+
+| To… | Use | Where |
+|---|---|---|
+| Make each Proxmox guest a host | `community.proxmox.proxmox`, a `*.proxmox.yml` file | `17-proxmox-inventory/inventory/guests.proxmox.yml` |
+| Target guests by node, type, status or pool | the plugin's groups: `proxmox_<node>_<type>`, `proxmox_all_running`, `proxmox_pool_<pool>` | `17-proxmox-inventory/run.sh` |
+| Keep only some guests | `filters:` on `proxmox_status` and `proxmox_tags`, without `want_facts` | `17-proxmox-inventory/inventory/running-test.proxmox.yml` |
+| Get each guest's configuration as variables | `want_facts: true`, or `want_post_filter_facts: true` for fewer API calls | `17-proxmox-inventory/inventory/facts.proxmox.yml`, `post-filter-facts.proxmox.yml` |
+| Set `ansible_host` from the guest agent or the static IP | `compose:` over `proxmox_agent_interfaces`, `proxmox_ipconfig0`, `proxmox_net0` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| A group per Proxmox tag | `keyed_groups:` on `proxmox_tags_parsed` | `17-proxmox-inventory/inventory/facts.proxmox.yml` |
+| Fail when a source doesn't parse | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true` (`any_unparsed_is_failed`) | `17-proxmox-inventory/run.sh` |
+
 ## Constructed groups and variables
 
 | Problem | Feature | Where |
@@ -251,6 +299,58 @@ Each of these is shown, with its output in the example's `expected.txt`:
   (`18-constructed/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
+- A static inventory copied from a CMDB keeps a retired host and an old
+  owner once the CMDB changes (`15-single-source-of-truth/static/`).
+- With `cache: true`, the plugin keeps returning the old hosts after the
+  source changes, until `--flush-cache` or `cache_timeout` (`15-single-source-of-truth/run.sh`).
+- An unreachable source, or a plugin config with `auto` left out of
+  `enable_plugins`, gives warnings and an empty inventory, and
+  `ansible-inventory` exits 0 (`15-single-source-of-truth/run.sh`).
+- A misspelled name in `enable_plugins` only warns: *Failed to load inventory
+  plugin, skipping* (`15-single-source-of-truth/run.sh`).
+- A plugin in `inventory_plugins/` beside a playbook is found by
+  `ansible-playbook`, but `ansible-inventory` says *specifies unknown plugin*
+  without `--playbook-dir` (`15-single-source-of-truth/pitfalls/adjacent/`).
+- Strings set by a custom inventory plugin are untrusted: `--list` prints
+  them as `{"__ansible_unsafe": …}`, an inventory script's as plain strings
+  (`15-single-source-of-truth/run.sh`).
+- Inventory files in a directory sort as text too: `9-override.yml` loads
+  after `10-hosts.yml` and wins (`14-several-inventories/name-order/`).
+- With `-i dir1 -i dir2`, each directory's `group_vars/` applies to the hosts
+  of both: `group_vars/all/` of the last one sets `env` for every host
+  (`14-several-inventories/environments/`).
+- A host defined in two sources keeps the first source as `inventory_file`
+  (`14-several-inventories/run.sh`).
+- A script without the execute bit is handed to the `ini` plugin, which
+  fails; Ansible warns and loads the rest (`14-several-inventories/pitfalls/not-executable/`).
+- A `README` with no extension in an inventory directory only warns and the
+  other sources load, unlike in `group_vars/`
+  (`14-several-inventories/pitfalls/readme/`).
+- The Foreman plugin's Hosts API makes no location or organization groups,
+  only host groups; the Reports API makes both (`16-foreman-inventory/run.sh`).
+- Without a cache, the Foreman plugin asks for each host separately, twice
+  when both `want_params` and `want_hostcollections` are set, and facts take
+  two requests per host: 13 requests for 3 hosts (`16-foreman-inventory/run.sh`).
+- `--limit` doesn't reduce what the Foreman plugin fetches: it reads every
+  host, then the limit applies (`16-foreman-inventory/run.sh`).
+- A host collection named *Web servers* gives `foreman_hostcollection_webservers`
+  through the Hosts API and `foreman_hostcollection_web_servers` through the
+  Reports API (`16-foreman-inventory/run.sh`).
+- The default Reports API against a Foreman without `foreman_ansible` only
+  warns: `ansible-inventory` exits 0 with no hosts
+  (`16-foreman-inventory/pitfalls/no-foreman-ansible.foreman.yml`).
+- A Foreman source whose name doesn't end in `foreman.yml` or `foreman.yaml`
+  is skipped with warnings, and the inventory is empty
+  (`16-foreman-inventory/pitfalls/foreman-inventory.yml`).
+- One guest with an empty name makes the Proxmox source fail as a whole:
+  no host at all, warnings, exit code 0 (`17-proxmox-inventory/pitfalls/unnamed.proxmox.yml`).
+- `plugin: community.general.proxmox` is redirected to community.proxmox
+  with a deprecation warning, then refused by the plugin's own `choices`:
+  empty inventory, exit code 0 (`17-proxmox-inventory/pitfalls/redirect.proxmox.yml`).
+- Two guests with the same name make one host: the variables of the last
+  one read, the groups of both (`17-proxmox-inventory/run.sh`).
+- A filter on a fact that only `want_facts` provides errors for every guest
+  and keeps them all, with a warning each (`17-proxmox-inventory/pitfalls/tags-parsed.proxmox.yml`).
 
 ## Testing patterns worth reusing
 
@@ -267,5 +367,9 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Test a dynamic inventory plugin without its server | a small Python mock of the API, started and stopped by `run.sh` | `18-constructed/mock/pve.py` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
+| Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
+| Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
+| Test an inventory plugin without its server | a mock of the API in Python, serving recorded responses and logging each request | `17-proxmox-inventory/mock/` |
