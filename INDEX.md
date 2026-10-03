@@ -42,6 +42,15 @@ its output with the example's `expected.txt`.
 | Check which user and machine a connection really reached | `setup` with `gather_subset: [user, platform]` | `04-connection-variables/whoami.yml` |
 | Give each host its connection settings | `host_vars/<host>/ansible.yml` | `04-connection-variables/inventory/host_vars/` |
 
+## Environments
+
+| To… | Use | Where |
+|---|---|---|
+| Keep prod and staging apart, chosen with `-i` | one inventory directory per environment, same group names | `05-environments/inventories/` |
+| Keep both environments in one inventory | `prod`/`staging` groups beside functional groups (`app`, `db`) | `05-environments/single/hosts.yml` |
+| Run a play on one environment of a single inventory | `--limit staging`, or `hosts: app:&staging` | `05-environments/run.sh`, `app_staging.yml` |
+| Give the environment's value precedence over a functional group's | rely on name order, or `ansible_group_priority` in the hosts file | `05-environments/precedence/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -74,6 +83,16 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - The local connection ignores `ansible_user` (`04-connection-variables/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
+- In one inventory holding both environments, `hosts: app` runs on prod and
+  staging (`05-environments/run.sh`).
+- Groups at the same depth merge by name: `prod` beats `app`, but `web`
+  beats `prod` (`05-environments/precedence/web-after-prod/`).
+- An environment group's variables reach all its hosts: `db1` gets
+  `app_log_level` from `prod` (`05-environments/single/`).
+- `ansible_group_priority` in `group_vars/` is ignored, and shows up as an
+  ordinary variable (`05-environments/precedence/priority-in-group-vars/`).
+- A misspelled `--limit` only warns about the pattern, then fails with
+  *no hosts to target* (`05-environments/run.sh`).
 
 ## Testing patterns worth reusing
 
@@ -84,3 +103,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Keep machine-specific names out of `expected.txt` | compare a fact with the controller's own value, print a fixed label | `04-connection-variables/whoami.yml` |
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
 | Record a command that's expected to fail, and keep going | `if … ; then … ; else` with the exit code and stderr in the output | `02-inventory-directory/run.sh` |
+| Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
