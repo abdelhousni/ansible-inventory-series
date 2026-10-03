@@ -114,6 +114,17 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Several inventory sources
+
+| Problem | Feature | Where |
+|---|---|---|
+| Mix static hosts and a script (CMDB, cloud API) in one inventory | one directory holding a YAML file and an executable script | `14-several-inventories/inventory/` |
+| See which sources Ansible parsed, in which order, with which plugin | `ansible-inventory --graph -vvv`, lines *Parsed … inventory source with … plugin* | `14-several-inventories/run.sh` |
+| Override a source's values with another source | a later source: last loaded wins, key by key; groups merge | `14-several-inventories/conflicts/` |
+| Combine two inventory directories in one run | `-i dir1 -i dir2`, loaded in the order given | `14-several-inventories/environments/` |
+| Keep notes or leftovers in an inventory directory | `.md`, `.txt`, `.retry`, `.cfg`, `.orig`, `~`, hidden files are skipped (`inventory_ignore_extensions`) | `14-several-inventories/inventory/` |
+| Fail when any source in a directory can't be parsed | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `14-several-inventories/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -229,6 +240,19 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
 
+- Inventory files in a directory sort as text too: `9-override.yml` loads
+  after `10-hosts.yml` and wins (`14-several-inventories/name-order/`).
+- With `-i dir1 -i dir2`, each directory's `group_vars/` applies to the hosts
+  of both: `group_vars/all/` of the last one sets `env` for every host
+  (`14-several-inventories/environments/`).
+- A host defined in two sources keeps the first source as `inventory_file`
+  (`14-several-inventories/run.sh`).
+- A script without the execute bit is handed to the `ini` plugin, which
+  fails; Ansible warns and loads the rest (`14-several-inventories/pitfalls/not-executable/`).
+- A `README` with no extension in an inventory directory only warns and the
+  other sources load, unlike in `group_vars/`
+  (`14-several-inventories/pitfalls/readme/`).
+
 ## Testing patterns worth reusing
 
 | To… | How | Where |
@@ -245,3 +269,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
+| Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
