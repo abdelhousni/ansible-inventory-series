@@ -1,0 +1,29 @@
+---
+- name: Provision the VMs and add them to the in-memory inventory
+  hosts: managers
+  gather_facts: false
+  vars:
+    # The names the manager gives the VMs: web01, web02, web03.
+    vm_names: "{{ query('ansible.builtin.sequence', start=1, count=vm_order.count, format=vm_order.prefix ~ '%02d') }}"
+  tasks:
+    - name: Create each VM on the manager (a fake API call that records it in out/manager/)
+      ansible.builtin.copy:
+        content: "{{ vm_order.cpus }} cpus, {{ vm_order.memory_mb }} MB, 192.0.2.{{ 10 + index }}\n"
+        dest: "{{ playbook_dir }}/out/manager/{{ item }}.txt"
+        mode: "0644"
+      loop: "{{ vm_names }}"
+      loop_control:
+        index_var: index
+
+    - name: Add each VM to the groups web and new_vms, with its variables
+      ansible.builtin.add_host:
+        name: "{{ item }}"
+        groups:
+          - web
+          - new_vms
+        ansible_host: "192.0.2.{{ 10 + index }}"
+        vm_cpus: "{{ vm_order.cpus }}"
+        vm_manager: "{{ inventory_hostname }}"
+      loop: "{{ vm_names }}"
+      loop_control:
+        index_var: index

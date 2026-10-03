@@ -1,0 +1,14 @@
+---
+# The Proxmox VE cluster as an inventory source. The file name must end in
+# proxmox.yml for the plugin to accept it. The URL points at the mock in
+# mock/pve.py; the token is a test-only value the mock accepts.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18180
+user: ansible@pve
+token_id: inventory
+token_secret: test-only-not-a-secret
+validate_certs: false
+# Read each guest's config: tags as a list, ostype, IP settings.
+want_facts: true
+# Guests only, not the Proxmox nodes themselves.
+exclude_nodes: true

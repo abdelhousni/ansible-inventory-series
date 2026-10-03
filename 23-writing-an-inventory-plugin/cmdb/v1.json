@@ -1,0 +1,7 @@
+{
+  "servers": [
+    {"name": "app1", "role": "app", "env": "prod", "owner": "web-team", "address": "10.0.1.11"},
+    {"name": "app2", "role": "app", "env": "test", "owner": "web-team", "address": "10.0.2.12"},
+    {"name": "db1", "role": "db", "env": "prod", "owner": "dba-team", "address": "10.0.1.21"}
+  ]
+}

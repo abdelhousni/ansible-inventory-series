@@ -1,0 +1,7 @@
+---
+# Groups on cmdb_rack, a field the CMDB doesn't have, without strict.
+plugin: example.cmdb.cmdb
+url: http://127.0.0.1:18230/api/servers
+keyed_groups:
+  - key: cmdb_rack
+    prefix: rack

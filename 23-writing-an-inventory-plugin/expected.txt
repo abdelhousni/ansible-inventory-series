@@ -1,0 +1,99 @@
+== 1. What ansible-core already has: ansible-doc -t inventory -l
+  ansible.builtin.advanced_host_list Parses a 'host list' with ranges
+  ansible.builtin.auto               Loads and executes an inventory plugin specified in a YAML config
+  ansible.builtin.constructed        Uses Jinja2 to construct vars and groups based on existing inventory
+  ansible.builtin.generator          Uses Jinja2 to construct hosts and groups from patterns
+  ansible.builtin.host_list          Parses a 'host list' string
+  ansible.builtin.ini                Uses an Ansible INI file as inventory source
+  ansible.builtin.script             Executes an inventory script that returns JSON
+  ansible.builtin.toml               Uses a specific TOML file as an inventory source
+  ansible.builtin.yaml               Uses a specific YAML file as an inventory source
+
+== 2. No code of our own: an inventory script, then the constructed plugin
+  script + constructed: exit 0, app[app1,app2] db[db1] env_prod[app1,db1] env_test[app2]
+    CMDB got: GET /api/servers token=ok
+  db1's variables:
+    ansible_host: 10.0.1.21
+    cmdb_address: 10.0.1.21
+    cmdb_env: prod
+    cmdb_owner: dba-team
+    cmdb_role: db
+
+== 3. The plugin in a collection: its documentation (ansible-doc)
+  Hosts from the example's CMDB; options, with the cache and constructed ones merged in:
+  cache             default False, ANSIBLE_INVENTORY_CACHE
+  cache_connection  ANSIBLE_CACHE_PLUGIN_CONNECTION, ANSIBLE_INVENTORY_CACHE_CONNECTION
+  cache_plugin      default memory, ANSIBLE_CACHE_PLUGIN, ANSIBLE_INVENTORY_CACHE_PLUGIN
+  cache_prefix      default ansible_inventory_, ANSIBLE_CACHE_PLUGIN_PREFIX, ANSIBLE_INVENTORY_CACHE_PLUGIN_PREFIX
+  cache_timeout     default 3600, ANSIBLE_CACHE_PLUGIN_TIMEOUT, ANSIBLE_INVENTORY_CACHE_TIMEOUT
+  compose           default {}
+  groups            default {}
+  keyed_groups      default []
+  leading_separator default True
+  plugin            required
+  strict            default False
+  timeout           default 10
+  token             required, CMDB_TOKEN
+  url               required, CMDB_URL
+  use_extra_vars    default False, ANSIBLE_INVENTORY_USE_EXTRA_VARS
+  validate_certs    default True, CMDB_VALIDATE_CERTS
+
+== 4. The plugin reads the CMDB
+  hosts.cmdb.yml: exit 0, app[app1,app2] db[db1] env_prod[app1,db1] env_test[app2]
+    CMDB got: GET /api/servers token=ok
+  db1's variables:
+    ansible_host: 10.0.1.21
+    cmdb_address: 10.0.1.21
+    cmdb_env: prod
+    cmdb_owner: dba-team
+    cmdb_role: db
+  env-only.cmdb.yml: url from CMDB_URL: exit 0, app[app1,app2] db[db1]
+    CMDB got: GET /api/servers token=ok
+  cmdb-hosts.yml: verify_file declines the name: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: inventory source 'pitfalls/cmdb-hosts.yml' could not be verified by inventory plugin 'example.cmdb.cmdb'
+    [WARNING]: Failed to parse inventory with 'yaml' plugin: Plugin configuration YAML file, not YAML inventory
+    [WARNING]: Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Invalid host pattern '---' supplied, '---' is normally a sign this is a YAML file.
+    [WARNING]: Unable to parse pitfalls/cmdb-hosts.yml as an inventory source
+    [WARNING]: No inventory was parsed, only implicit localhost is available
+
+== 5. Errors: the plugin raises AnsibleParserError with what went wrong
+  CMDB_TOKEN unset: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: Required config 'token' for 'ansible_collections.example.cmdb.plugins.inventory.cmdb' inventory plugin not provided.
+    [WARNING]: Unable to parse pitfalls/env-only.cmdb.yml as an inventory source
+  CMDB_TOKEN empty: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: no token for the CMDB: set CMDB_TOKEN, or token in the configuration file
+    [WARNING]: Unable to parse pitfalls/env-only.cmdb.yml as an inventory source
+  wrong token: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: cannot read the CMDB at http://127.0.0.1:18230/api/servers: HTTP Error 401: Unauthorized
+    [WARNING]: Unable to parse pitfalls/env-only.cmdb.yml as an inventory source
+    CMDB got: GET /api/servers token=missing or wrong
+  an HTML answer: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: the CMDB at http://127.0.0.1:18230/html did not answer with JSON: Expecting value: line 1 column 1 (char 0)
+    [WARNING]: Unable to parse pitfalls/html.cmdb.yml as an inventory source
+    CMDB got: GET /html token=ok
+  a server without a name: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: server #0 from http://127.0.0.1:18230/api/servers has no name
+    [WARNING]: Unable to parse pitfalls/env-only.cmdb.yml as an inventory source
+    CMDB got: GET /api/servers token=ok
+  the same, any_unparsed_is_failed: exit 1, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: server #0 from http://127.0.0.1:18230/api/servers has no name
+    [ERROR]: Completely failed to parse inventory source pitfalls/env-only.cmdb.yml
+    CMDB got: GET /api/servers token=ok
+  keyed_groups on a missing field: exit 0, app[app1,app2] db[db1]
+    CMDB got: GET /api/servers token=ok
+  the same, strict: true: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: Could not generate group for host app1 from cmdb_rack entry: 'cmdb_rack' is undefined
+    [WARNING]: Unable to parse pitfalls/rack-strict.cmdb.yml as an inventory source
+    CMDB got: GET /api/servers token=ok
+
+== 6. The cache: the CMDB changes (app2 retired, app3 added), then goes down
+  from the cache: exit 0, app[app1,app2] db[db1] env_prod[app1,db1] env_test[app2]
+  --flush-cache: exit 0, app[app1,app3] db[db1] env_prod[app1,app3,db1]
+    CMDB got: GET /api/servers token=ok
+  CMDB down, from the cache: exit 0, app[app1,app3] db[db1] env_prod[app1,app3,db1]
+  CMDB down, --flush-cache: exit 0, no hosts
+    [WARNING]: Failed to parse inventory with 'auto' plugin: cannot read the CMDB at http://127.0.0.1:18230/api/servers: <urlopen error [Errno 111] Connection refused>
+    [WARNING]: Unable to parse inventory/hosts.cmdb.yml as an inventory source
+
+== 7. Unit tests, with the HTTP call mocked (pytest)
+  14 passed

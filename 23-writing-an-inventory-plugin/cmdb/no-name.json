@@ -1,0 +1,5 @@
+{
+  "servers": [
+    {"role": "app", "env": "prod", "owner": "web-team", "address": "10.0.1.11"}
+  ]
+}

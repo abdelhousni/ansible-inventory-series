@@ -1,0 +1,10 @@
+---
+# Runs after 01-cmdb.py (files of an inventory directory load in name order),
+# and builds groups and variables from what the script returned.
+plugin: ansible.builtin.constructed
+strict: true
+compose:
+  ansible_host: cmdb_address
+keyed_groups:
+  - key: cmdb_env
+    prefix: env
