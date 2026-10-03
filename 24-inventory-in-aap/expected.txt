@@ -1,0 +1,37 @@
+== 1. An inventory source from a project: ansible-inventory --list --export -i <source_path>
+  all: hosts -, vars {"ansible_connection":"local","ntp_server":"ntp.example.com"}
+  app: hosts app1,app2
+  db: hosts db1, vars {"db_port":5432}
+  db1: {"db_port":5433}
+  without --export, group variables are copied into each host:
+  app1: {"ansible_connection":"local","ntp_server":"ntp.example.com"}
+  app2: {"ansible_connection":"local","ntp_server":"ntp.example.com"}
+  db1: {"ansible_connection":"local","db_port":5433,"ntp_server":"ntp.example.com"}
+
+== 2. A smart inventory's host_filter groups__name=db, as a pattern
+  hosts (1):
+  db1
+
+== 3. A constructed inventory: -i each input inventory, then -i the source_vars, then --limit
+  all: hosts -, vars {"site":"west"}
+  shutdown: hosts host2,host6
+  shutdown_in_product_dev: hosts host2,host6
+  host2: {"account_alias":"product_dev","resolved_state":"shutdown","state":"shutdown"}
+  host6: {"account_alias":"product_dev","resolved_state":"shutdown","state":"shutdown"}
+  inputs in the other order, all:vars site:
+  east
+
+== 4. A typo in the source_vars, with AWX's environment and the demo's limit
+  strict: true, exit 1
+    'acount_alias' is undefined
+    Could not match supplied host pattern, ignoring: shutdown_in_product_dev
+  strict: false, exit 1
+    Could not match supplied host pattern, ignoring: shutdown_in_product_dev
+  strict: true, no limit, ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=True: exit 1
+  strict: true, no limit, AWX's environment only: exit 0, 6 hosts
+
+== 5. A limit that matches nothing
+  AWX environment: exit 1, no output
+    Could not match supplied host pattern, ignoring: shutdown_in_product_devv
+  default environment: exit 0, output with 0 hosts
+    Could not match supplied host pattern, ignoring: shutdown_in_product_devv
