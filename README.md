@@ -19,6 +19,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`11-host-patterns/`](11-host-patterns/) | [Item 11: Targeting hosts with patterns, --limit and constructed groups](https://til.housni.eu/ansible/targeting-hosts-static-and-dynamic-inventory.html) |
 | [`12-limit-in-practice/`](12-limit-in-practice/) | [Item 12: --limit in practice: plays, run_once, facts of other hosts](https://til.housni.eu/ansible/inventory-limit-in-practice.html) |
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
+| [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
 | [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
