@@ -1,0 +1,55 @@
+{
+ "total": 3,
+ "subtotal": 3,
+ "page": 1,
+ "per_page": 250,
+ "search": null,
+ "sort": {
+  "by": null,
+  "order": null
+ },
+ "results": [
+  {
+   "id": 1,
+   "name": "web1.example.com",
+   "ip": "192.0.2.11",
+   "hostgroup_id": 2,
+   "hostgroup_name": "Web",
+   "hostgroup_title": "Base/Web",
+   "location_id": 1,
+   "location_name": "Brussels",
+   "organization_id": 1,
+   "organization_name": "Acme",
+   "operatingsystem_name": "RedHat 9.6",
+   "environment_name": null
+  },
+  {
+   "id": 2,
+   "name": "web2.example.com",
+   "ip": "192.0.2.12",
+   "hostgroup_id": 2,
+   "hostgroup_name": "Web",
+   "hostgroup_title": "Base/Web",
+   "location_id": 2,
+   "location_name": "Paris",
+   "organization_id": 1,
+   "organization_name": "Acme",
+   "operatingsystem_name": "RedHat 9.6",
+   "environment_name": null
+  },
+  {
+   "id": 3,
+   "name": "db1.example.com",
+   "ip": "192.0.2.21",
+   "hostgroup_id": 3,
+   "hostgroup_name": "DB",
+   "hostgroup_title": "Base/DB",
+   "location_id": 1,
+   "location_name": "Brussels",
+   "organization_id": 1,
+   "organization_name": "Acme",
+   "operatingsystem_name": "RedHat 9.6",
+   "environment_name": null
+  }
+ ]
+}

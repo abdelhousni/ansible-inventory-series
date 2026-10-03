@@ -1,0 +1,7 @@
+---
+# The cache in JSON files under out/cache, valid for the default 3600 seconds.
+plugin: cmdb
+url: http://127.0.0.1:18190/hosts.json
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: out/cache

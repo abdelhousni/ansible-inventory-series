@@ -1,0 +1,60 @@
+[
+ {
+  "name": "web1.example.com",
+  "ip": "192.0.2.11",
+  "host_group": "Base/Web",
+  "location": "Brussels",
+  "organization": "Acme",
+  "host_parameters": {
+   "ntp_server": "ntp.brussels.example.com",
+   "app_port": 8080,
+   "tier": "frontend"
+  },
+  "host_collections": [
+   "Web servers",
+   "Patch Tuesday"
+  ],
+  "content_attributes": {
+   "lifecycle_environment_name": "Production",
+   "content_view_name": "RHEL9"
+  }
+ },
+ {
+  "name": "web2.example.com",
+  "ip": "192.0.2.12",
+  "host_group": "Base/Web",
+  "location": "Paris",
+  "organization": "Acme",
+  "host_parameters": {
+   "ntp_server": "ntp.paris.example.com",
+   "app_port": 8080,
+   "tier": "frontend"
+  },
+  "host_collections": [
+   "Web servers"
+  ],
+  "content_attributes": {
+   "lifecycle_environment_name": "Production",
+   "content_view_name": "RHEL9"
+  }
+ },
+ {
+  "name": "db1.example.com",
+  "ip": "192.0.2.21",
+  "host_group": "Base/DB",
+  "location": "Brussels",
+  "organization": "Acme",
+  "host_parameters": {
+   "ntp_server": "ntp.brussels.example.com",
+   "db_engine": "postgresql",
+   "tier": "backend"
+  },
+  "host_collections": [
+   "Patch Tuesday"
+  ],
+  "content_attributes": {
+   "lifecycle_environment_name": "Production",
+   "content_view_name": "RHEL9"
+  }
+ }
+]
