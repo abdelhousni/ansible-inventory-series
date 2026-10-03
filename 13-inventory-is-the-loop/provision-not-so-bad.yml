@@ -1,0 +1,11 @@
+---
+- name: Provision the VMs from the manager's list of names
+  hosts: managers
+  gather_facts: false
+  tasks:
+    - name: Call the manager's API for each VM
+      ansible.builtin.include_tasks: tasks/create_vm.yml
+      vars:
+        vm_name: "{{ item }}"
+        vm_spec: "{{ hostvars[item].vm_cpus }} cpus, {{ hostvars[item].vm_memory_mb }} MB"
+      loop: "{{ manager_vms }}"

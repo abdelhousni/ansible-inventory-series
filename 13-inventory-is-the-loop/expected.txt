@@ -1,0 +1,48 @@
+== 1. Where each VM's name and size are written
+  bad: app3 in bad/host_vars/manager1/provision.yml bad/hosts.yml
+  bad: 4096 in bad/host_vars/manager1/provision.yml
+  not-so-bad: app3 in not-so-bad/host_vars/manager1/provision.yml not-so-bad/hosts.yml
+  not-so-bad: 4096 in not-so-bad/group_vars/app/vm.yml
+  good: app3 in good/hosts.yml
+  good: 4096 in good/group_vars/app/vm.yml
+
+== 2. All five VMs: the loops run one VM after another, the play runs five at a time
+  bad: exit 0, 5 s or more
+    app1: 2 cpus, 4096 MB
+    app2: 2 cpus, 4096 MB
+    app3: 2 cpus, 4096 MB
+    db1: 4 cpus, 16384 MB
+    db2: 4 cpus, 8192 MB
+  not-so-bad: exit 0, 5 s or more
+    app1: 2 cpus, 4096 MB
+    app2: 2 cpus, 4096 MB
+    app3: 2 cpus, 4096 MB
+    db1: 4 cpus, 16384 MB
+    db2: 4 cpus, 8192 MB
+  good: exit 0, under 5 s
+    app1: 2 cpus, 4096 MB
+    app2: 2 cpus, 4096 MB
+    app3: 2 cpus, 4096 MB
+    db1: 4 cpus, 16384 MB
+    db2: 4 cpus, 8192 MB
+
+== 3. --limit db1
+  bad --limit db1: exit 0, under 5 s
+    skipping: no hosts matched
+  good --limit db1: exit 0, under 5 s
+    db1: 4 cpus, 16384 MB
+  bad, the only limit that provisions anything:
+  bad --limit manager1: exit 0, 5 s or more
+    app1: 2 cpus, 4096 MB
+    app2: 2 cpus, 4096 MB
+    app3: 2 cpus, 4096 MB
+    db1: 4 cpus, 16384 MB
+    db2: 4 cpus, 8192 MB
+
+== 4. The VMs don't exist yet: gathering facts fails
+  exit 4
+  fatal: [app1]: UNREACHABLE
+  fatal: [app2]: UNREACHABLE
+  fatal: [app3]: UNREACHABLE
+  fatal: [db1]: UNREACHABLE
+  fatal: [db2]: UNREACHABLE
