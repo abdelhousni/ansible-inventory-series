@@ -204,8 +204,9 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - Pattern operators apply by type, not left to right: unions, then
   intersections, then exclusions, so `prod:&app:db` means `(prod or db) and
   app` (`11-host-patterns/run.sh`).
-- `strict: true` on a constructed source warns once per inventory pass for a
-  host without the key, and still builds the other groups
+- `strict: true` stops a constructed source at the first host without the
+  key: four warnings, one per inventory plugin Ansible tries and an *Unable to
+  parse*, yet the groups built before that host stay
   (`11-host-patterns/pitfalls/strict/`).
 - Without `use_vars_plugins: true`, `constructed` doesn't see `group_vars/`
   (`11-host-patterns/inventory/30-constructed.yml`).
