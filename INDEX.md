@@ -139,6 +139,15 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## Hosts created during the run
+
+| Problem | Feature | Where |
+|---|---|---|
+| Configure VMs in the same run that creates them | `ansible.builtin.add_host` in the provisioning play, a play on the new group after it | `21-add-host/site.yml` |
+| Give an added host groups and variables | `groups:` and any other key of `add_host` (`ansible_host`, …) | `21-add-host/provision.yml` |
+| Give a group created by `add_host` its variables | `group_vars/<group>/` in the inventory: it applies to the added hosts | `21-add-host/inventory/group_vars/web/` |
+| Add one host per host of the play | `add_host` with a `loop`, over `groups['<group>']` | `21-add-host/pitfalls/once-per-play/add.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -281,6 +290,17 @@ Each of these is shown, with its output in the example's `expected.txt`:
   other sources load, unlike in `group_vars/`
   (`14-several-inventories/pitfalls/readme/`).
 
+- `add_host` without a loop runs once per play, on the first host, not once
+  per host (`21-add-host/pitfalls/once-per-play/`).
+- A host added by `add_host` joins `ansible_play_hosts` of the play that
+  added it, though the play's tasks don't run on it
+  (`21-add-host/pitfalls/once-per-play/`).
+- Hosts added by `add_host` stay out of a run with `--limit <manager>`; a
+  `--limit` naming them warns *Could not match* but still lets them in, and a
+  `--limit` naming only them fails with exit 1 (`21-add-host/run.sh`).
+- `add_host` leaves nothing behind: `ansible-inventory` and the next run
+  don't see the added hosts (`21-add-host/run.sh`).
+
 ## Testing patterns worth reusing
 
 | To… | How | Where |
@@ -299,3 +319,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
+| Show which hosts each play reached | each play writes one file per host in `out/`, `run.sh` lists them | `21-add-host/run.sh` |
