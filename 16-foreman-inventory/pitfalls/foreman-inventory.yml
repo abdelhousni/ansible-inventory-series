@@ -1,0 +1,5 @@
+---
+# A good configuration in a file whose name ends neither in foreman.yml nor foreman.yaml.
+plugin: theforeman.foreman.foreman
+url: http://127.0.0.1:18160
+use_reports_api: false

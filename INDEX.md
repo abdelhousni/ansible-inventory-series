@@ -114,6 +114,17 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Foreman and Satellite
+
+| Problem | Feature | Where |
+|---|---|---|
+| Take the hosts from Foreman or Satellite | `theforeman.foreman.foreman` in a file ending in `foreman.yml`, loaded by `auto` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Keep the Foreman password out of the source file | `FOREMAN_USER` and `FOREMAN_PASSWORD` in the environment | `16-foreman-inventory/run.sh` |
+| Get Foreman's host parameters as variables | `want_params: true`; with `legacy_hostvars: true`, a `foreman_params` dict, looped over with `dict2items` | `16-foreman-inventory/inventory/`, `params.yml` |
+| Groups by location with the Hosts API | `keyed_groups` on `foreman_location_name` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Short host names instead of FQDNs | `hostnames: [name.split('.')[0]]` | `16-foreman-inventory/inventory/` |
+| Stop asking Foreman on every run | `cache: true` with `cache_plugin: ansible.builtin.jsonfile`; `--flush-cache` to ask again | `16-foreman-inventory/inventory/cached.foreman.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -228,6 +239,22 @@ Each of these is shown, with its output in the example's `expected.txt`:
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
+- The Foreman plugin's Hosts API makes no location or organization groups,
+  only host groups; the Reports API makes both (`16-foreman-inventory/run.sh`).
+- Without a cache, the Foreman plugin asks for each host separately, twice
+  when both `want_params` and `want_hostcollections` are set, and facts take
+  two requests per host: 13 requests for 3 hosts (`16-foreman-inventory/run.sh`).
+- `--limit` doesn't reduce what the Foreman plugin fetches: it reads every
+  host, then the limit applies (`16-foreman-inventory/run.sh`).
+- A host collection named *Web servers* gives `foreman_hostcollection_webservers`
+  through the Hosts API and `foreman_hostcollection_web_servers` through the
+  Reports API (`16-foreman-inventory/run.sh`).
+- The default Reports API against a Foreman without `foreman_ansible` only
+  warns: `ansible-inventory` exits 0 with no hosts
+  (`16-foreman-inventory/pitfalls/no-foreman-ansible.foreman.yml`).
+- A Foreman source whose name doesn't end in `foreman.yml` or `foreman.yaml`
+  is skipped with warnings, and the inventory is empty
+  (`16-foreman-inventory/pitfalls/foreman-inventory.yml`).
 
 ## Testing patterns worth reusing
 
@@ -245,3 +272,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
+| Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
