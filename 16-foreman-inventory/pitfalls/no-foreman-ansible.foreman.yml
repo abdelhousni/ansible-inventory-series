@@ -1,0 +1,4 @@
+---
+# The default Reports API against a Foreman without the foreman_ansible plugin.
+plugin: theforeman.foreman.foreman
+url: http://127.0.0.1:18160/plain

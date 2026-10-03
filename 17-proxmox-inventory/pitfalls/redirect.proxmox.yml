@@ -1,0 +1,7 @@
+---
+# The old name: community.general redirects it, the plugin then refuses it.
+plugin: community.general.proxmox
+url: http://127.0.0.1:18170
+user: ansible@pve
+filters:
+  - proxmox_name != ''

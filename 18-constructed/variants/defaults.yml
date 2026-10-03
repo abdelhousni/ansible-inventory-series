@@ -1,0 +1,14 @@
+---
+# The same keyed groups as inventory/20-constructed.yml, with the defaults
+# left alone: no default_value, trailing_separator and leading_separator
+# both true (their default).
+plugin: ansible.builtin.constructed
+strict: false
+keyed_groups:
+  - key: proxmox_tags_parsed | default([''])
+    prefix: tag
+  - key: "{'os': proxmox_ostype | default('')}"
+  # Without default(['']), a guest without tags has no proxmox_tags_parsed:
+  # the key fails, and strict: false skips it.
+  - key: proxmox_tags_parsed
+    prefix: raw

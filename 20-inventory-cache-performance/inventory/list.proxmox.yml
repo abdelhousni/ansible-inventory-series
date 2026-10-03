@@ -1,0 +1,8 @@
+---
+# The web guests, from the guest lists alone: one request per node and guest type.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18200
+user: ansible@pve
+exclude_nodes: true
+filters:
+  - proxmox_tags == 'web'

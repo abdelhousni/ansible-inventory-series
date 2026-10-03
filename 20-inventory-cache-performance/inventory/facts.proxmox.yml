@@ -1,0 +1,9 @@
+---
+# The same guests with their configuration: want_facts reads it for every guest, kept or not.
+plugin: community.proxmox.proxmox
+url: http://127.0.0.1:18200
+user: ansible@pve
+exclude_nodes: true
+want_facts: true
+filters:
+  - proxmox_tags == 'web'
