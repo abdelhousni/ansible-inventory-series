@@ -114,6 +114,20 @@ its output with the example's `expected.txt`.
 | Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
 | Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
+## Inventory from the system that owns the data
+
+| Problem | Feature | Where |
+|---|---|---|
+| Read hosts from a CMDB or another API instead of copying them | an inventory plugin with a YAML configuration file (`plugin: <name>`) | `15-single-source-of-truth/plugin/hosts.cmdb.yml` |
+| Write a small inventory plugin | `BaseInventoryPlugin`, `verify_file()` on the file name, `parse()` with `_read_config_data()` | `15-single-source-of-truth/plugins/inventory/cmdb.py` |
+| Make Ansible find a plugin of your own | `inventory_plugins = <dir>` in `ansible.cfg` | `15-single-source-of-truth/ansible.cfg` |
+| Write an inventory script | an executable answering `--list` with `_meta.hostvars`, and `--host` | `15-single-source-of-truth/script/cmdb_inventory.py` |
+| See which plugin parsed a source, and which declined it | `ansible-inventory -vvv` | `15-single-source-of-truth/run.sh` |
+| Change which inventory plugins run, and in what order | `[inventory] enable_plugins`, or `ANSIBLE_INVENTORY_ENABLED` | `15-single-source-of-truth/run.sh` |
+| Keep the inventory when the source is down, and save API calls | `cache: true`, `cache_plugin: ansible.builtin.jsonfile`, `Cacheable` in the plugin | `15-single-source-of-truth/plugin/hosts.cmdb.yml` |
+| Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
+| Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -228,6 +242,21 @@ Each of these is shown, with its output in the example's `expected.txt`:
   on every host in the list (`13-inventory-is-the-loop/run.sh`).
 - A play on hosts that don't exist yet must set `gather_facts: false`, or
   every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
+- A static inventory copied from a CMDB keeps a retired host and an old
+  owner once the CMDB changes (`15-single-source-of-truth/static/`).
+- With `cache: true`, the plugin keeps returning the old hosts after the
+  source changes, until `--flush-cache` or `cache_timeout` (`15-single-source-of-truth/run.sh`).
+- An unreachable source, or a plugin config with `auto` left out of
+  `enable_plugins`, gives warnings and an empty inventory, and
+  `ansible-inventory` exits 0 (`15-single-source-of-truth/run.sh`).
+- A misspelled name in `enable_plugins` only warns: *Failed to load inventory
+  plugin, skipping* (`15-single-source-of-truth/run.sh`).
+- A plugin in `inventory_plugins/` beside a playbook is found by
+  `ansible-playbook`, but `ansible-inventory` says *specifies unknown plugin*
+  without `--playbook-dir` (`15-single-source-of-truth/pitfalls/adjacent/`).
+- Strings set by a custom inventory plugin are untrusted: `--list` prints
+  them as `{"__ansible_unsafe": …}`, an inventory script's as plain strings
+  (`15-single-source-of-truth/run.sh`).
 
 ## Testing patterns worth reusing
 
@@ -244,4 +273,5 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
