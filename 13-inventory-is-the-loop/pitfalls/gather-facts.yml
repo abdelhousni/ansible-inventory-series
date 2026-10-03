@@ -1,0 +1,10 @@
+---
+# provision-good.yml's play with fact gathering left on.
+- name: Provision each VM from its manager, gathering facts first
+  hosts: vms
+  gather_facts: true
+  tasks:
+    - name: Report the VM the manager would create
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} created on {{ vm_manager }}"
+      delegate_to: "{{ vm_manager }}"

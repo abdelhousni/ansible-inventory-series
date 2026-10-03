@@ -1,0 +1,8 @@
+---
+# Only the names: each VM's size comes from its own variables.
+manager_vms:
+  - app1
+  - app2
+  - app3
+  - db1
+  - db2

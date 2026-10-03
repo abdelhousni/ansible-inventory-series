@@ -111,6 +111,8 @@ its output with the example's `expected.txt`.
 | Group hosts by a variable's value | `ansible.builtin.constructed` with `keyed_groups` and `use_vars_plugins: true` | `11-host-patterns/inventory/30-constructed.yml` |
 | Read another host's facts when `--limit` leaves it out | `setup` with `delegate_to` and `delegate_facts: true`, or a fact cache | `12-limit-in-practice/delegate-facts.yml`, `run.sh` |
 | Know inside a play whether a limit is set | the `ansible_limit` magic variable | `12-limit-in-practice/facts.yml` |
+| Act on a manager for each host, such as creating VMs | a play on the hosts with `delegate_to: "{{ vm_manager }}"`, not a loop over a list | `13-inventory-is-the-loop/provision-good.yml` |
+| Size hosts by group, with exceptions per host | `group_vars/<group>/` and `host_vars/<host>/`, read by the delegated play | `13-inventory-is-the-loop/good/` |
 
 ## Pitfalls recorded
 
@@ -221,6 +223,11 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A `--limit` that matches nothing fails with exit 1; a typo in one of its
   hosts, or a play's `hosts:` that matches nothing, only warns
   (`12-limit-in-practice/run.sh`).
+- A play looping over a list of hosts in a variable runs one host after
+  another, and `--limit <host>` skips it: only `--limit <manager>` runs it,
+  on every host in the list (`13-inventory-is-the-loop/run.sh`).
+- A play on hosts that don't exist yet must set `gather_facts: false`, or
+  every host is unreachable (`13-inventory-is-the-loop/pitfalls/`).
 
 ## Testing patterns worth reusing
 
@@ -237,3 +244,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Show which hosts a pattern reached, with a variable each got | one `run_once` task on localhost looping over `ansible_play_hosts_all` | `05-environments/app.yml` |
 | Print a command, its output, and its exit code when it fails | a shell function around `ansible-inventory` | `06-ansible-inventory/run.sh` |
 | Keep task output in the same order on every run | `forks = 1` in the example's `ansible.cfg` | `12-limit-in-practice/ansible.cfg` |
+| Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |

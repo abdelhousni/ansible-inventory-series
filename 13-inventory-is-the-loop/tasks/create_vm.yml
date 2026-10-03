@@ -1,0 +1,12 @@
+---
+# Stands in for a hypervisor API call, run on the manager: takes a second,
+# then records the VM in out/manager/.
+- name: create_vm | Wait for the API call to complete
+  ansible.builtin.wait_for:
+    timeout: 1
+
+- name: create_vm | Record the VM on the manager
+  ansible.builtin.copy:
+    content: "{{ vm_spec }}\n"
+    dest: "{{ playbook_dir }}/out/manager/{{ vm_name }}.txt"
+    mode: "0644"

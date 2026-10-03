@@ -1,0 +1,7 @@
+---
+# Which manager creates these VMs.
+vm_manager: manager1
+# The VMs don't exist before provisioning: connecting to them fails fast.
+ansible_connection: ssh
+ansible_host: 127.0.0.1
+ansible_port: 1

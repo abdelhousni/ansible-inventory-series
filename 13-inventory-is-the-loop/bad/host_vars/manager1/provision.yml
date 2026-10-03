@@ -1,0 +1,19 @@
+---
+# Every VM the manager creates, with its size: the VMs are listed a second
+# time, outside the inventory's groups.
+manager_vms:
+  - name: app1
+    cpus: 2
+    memory_mb: 4096
+  - name: app2
+    cpus: 2
+    memory_mb: 4096
+  - name: app3
+    cpus: 2
+    memory_mb: 4096
+  - name: db1
+    cpus: 4
+    memory_mb: 16384
+  - name: db2
+    cpus: 4
+    memory_mb: 8192
