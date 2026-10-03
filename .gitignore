@@ -1,0 +1,6 @@
+/.venv/
+/collections/
+/roles/
+out/
+__pycache__/
+.ansible/
