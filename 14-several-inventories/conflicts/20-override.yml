@@ -1,0 +1,14 @@
+---
+# Loaded after 10-hosts.yml: same group, same host, other values.
+all:
+  children:
+    app:
+      vars:
+        app_port: 9090
+    db:
+      hosts:
+        db1:
+          pg_max_connections: 200
+    prod:
+      hosts:
+        db1:

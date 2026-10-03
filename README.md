@@ -19,6 +19,8 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`11-host-patterns/`](11-host-patterns/) | [Item 11: Targeting hosts with patterns, --limit and constructed groups](https://til.housni.eu/ansible/targeting-hosts-static-and-dynamic-inventory.html) |
 | [`12-limit-in-practice/`](12-limit-in-practice/) | [Item 12: --limit in practice: plays, run_once, facts of other hosts](https://til.housni.eu/ansible/inventory-limit-in-practice.html) |
 | [`13-inventory-is-the-loop/`](13-inventory-is-the-loop/) | [Item 13: Let the inventory be the loop, delegate_to instead of a list of hosts](https://til.housni.eu/ansible/inventory-is-the-loop-delegate-to.html) |
+| [`14-several-inventories/`](14-several-inventories/) | [Item 14: Several inventories at once, load order and conflicts](https://til.housni.eu/ansible/inventory-several-sources-load-order.html) |
+| [`15-single-source-of-truth/`](15-single-source-of-truth/) | [Item 15: A single source of truth: inventory plugins, enable_plugins and auto](https://til.housni.eu/ansible/inventory-plugins-single-source-of-truth.html) |
 | [`16-foreman-inventory/`](16-foreman-inventory/) | [Item 16: The Foreman/Satellite dynamic inventory plugin](https://til.housni.eu/ansible/foreman-dynamic-inventory-plugin.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
@@ -71,11 +73,12 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 13 connect to every
-  host locally. 16 asks a fake Foreman, a Python server that run.sh starts
-  on `127.0.0.1:18160` and stops. 04 and 07 start their targets as Docker containers on the
-  local machine, from images pinned by digest, and 04 generates an SSH key
-  pair for each run in its `out/` directory.
+- **No server is needed.** Examples 01 to 03, 05 to 06 and 11 to 14 connect
+  to every host locally. 15 and 16 start their own mock APIs, small Python
+  servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160), and stop
+  them when they end. 04 and 07 start their targets as Docker containers on
+  the local machine, from images pinned by digest, and 04 generates an SSH
+  key pair for each run in its `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 
