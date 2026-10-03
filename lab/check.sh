@@ -56,11 +56,38 @@ else
 fi
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
-if ! command -v docker >/dev/null; then
-  ko "docker CLI (04, 07)" "install Docker Engine or Docker Desktop"
-elif ! docker info >/dev/null 2>&1; then
-  ko "Docker daemon (04, 07)" "start it (systemctl start docker), and check your user can reach it"
-else
-  ok "Docker daemon $(docker version --format '{{.Server.Version}}' 2>/dev/null) (04, 07)"
+
+# 04 and 07 start their target hosts with one runtime: LAB_RUNTIME, or the
+# first available (lab/runtime.sh). Only the selected one has to work.
+echo "Lab runtime for 04 and 07 (LAB_RUNTIME=${LAB_RUNTIME:-auto}):"
+runtimes=""
+if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
+  runtimes="$runtimes docker"
+  printf '  found    Docker %s\n' "$(docker version --format '{{.Server.Version}}' 2>/dev/null)"
 fi
+if command -v podman >/dev/null && podman info >/dev/null 2>&1; then
+  runtimes="$runtimes podman"
+  printf '  found    Podman %s\n' "$(podman version --format '{{.Client.Version}}' 2>/dev/null)"
+fi
+if command -v kind >/dev/null && command -v kubectl >/dev/null \
+  && kind get clusters 2>/dev/null | grep -qx "${LAB_KIND_CLUSTER:-lab}" && kubectl get nodes >/dev/null 2>&1; then
+  runtimes="$runtimes kubernetes"
+  printf '  found    kind cluster %s, kubectl %s\n' "${LAB_KIND_CLUSTER:-lab}" \
+    "$(kubectl version --client -o json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["clientVersion"]["gitVersion"])')"
+fi
+selected=${LAB_RUNTIME:-}
+[ -z "$selected" ] && selected=$(echo "$runtimes" | awk '{print $1}')
+case " $runtimes " in
+  *" ${selected:-none} "*) ok "selected: $selected" ;;
+  *) ko "selected: ${selected:-none}" "start Docker or Podman, create the kind cluster (kind create cluster --name lab), or change LAB_RUNTIME" ;;
+esac
+for c in containers.podman:podman kubernetes.core:kubernetes; do
+  coll=${c%%:*} rt=${c##*:}
+  [ "$selected" = "$rt" ] || continue
+  if [ -d "collections/ansible_collections/${coll%%.*}/${coll#*.}" ]; then
+    ok "$coll in collections/ (for $rt)"
+  else
+    ko "$coll in collections/ (for $rt)" ".venv/bin/ansible-galaxy collection install -r requirements.yml -p collections"
+  fi
+done
 exit "$missing"

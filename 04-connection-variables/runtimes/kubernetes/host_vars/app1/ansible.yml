@@ -1,0 +1,5 @@
+---
+# With LAB_RUNTIME=kubernetes: a pod in the kind cluster, through kubectl
+# exec. It runs as the image's user: kubectl exec has no --user.
+ansible_connection: kubernetes.core.kubectl
+ansible_kubectl_pod: inv04-app1
