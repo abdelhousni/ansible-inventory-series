@@ -1,0 +1,27 @@
+app1:
+  connection: kubernetes.core.kubectl
+  ansible_host: inv04-app1
+  ansible_port: (not set)
+  ansible_user: appuser
+  landed as: root on app1-container
+db1:
+  connection: ssh
+  ansible_host: 127.0.0.1
+  ansible_port: 2222
+  ansible_user: dbadmin
+  landed as: dbadmin on db1-container
+jump1:
+  connection: local
+  ansible_host: (not set)
+  ansible_port: (not set)
+  ansible_user: (not set)
+  landed as: the controller's own user, on the controller
+
+db1 with ansible_host left at its default, the inventory name:
+  UNREACHABLE
+  Could not resolve hostname db1
+
+app1 with ansible_host left at its default, the inventory name:
+
+jump1 with ansible_user=nobody, which the local connection ignores:
+  ran as the controller's own user

@@ -498,6 +498,9 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A missing container fails differently per connection: *Failed to create
   temporary directory* with Docker, *Container 'app1' not found* with Podman
   (`04-connection-variables/expected-podman.txt`).
+- With `kubernetes.core.kubectl`, `ansible_user` has no effect (app1 lands as
+  root) and `ansible_host` doesn't name the pod: `ansible_kubectl_pod` does
+  (`04-connection-variables/expected-kubernetes.txt`).
 
 ## Testing patterns worth reusing
 

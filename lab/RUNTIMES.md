@@ -88,10 +88,11 @@ reaches the pods with `kubectl exec`.
 4. Run the examples:
    ```sh
    LAB_RUNTIME=kubernetes ./04-connection-variables/run.sh | diff 04-connection-variables/expected-kubernetes.txt -
-   LAB_RUNTIME=kubernetes ./07-facts-or-variables/run.sh | diff 07-facts-or-variables/expected.txt -
+   LAB_RUNTIME=kubernetes ./07-facts-or-variables/run.sh | diff 07-facts-or-variables/expected-kubernetes.txt -
    ```
-   Where an `expected-kubernetes.txt` exists, the runtime changes the output;
-   otherwise compare with `expected.txt`, as CI does.
+   Both examples have an `expected-kubernetes.txt`: on 04 the connection
+   name, the user app1 lands as, and the `ansible_host` mistake that no
+   longer fails; on 07 the extra `ansible_kubectl_pod` variable.
 5. Clean up: `run.sh` deletes its pods; to remove the cluster,
    `kind delete cluster --name lab`.
 
@@ -99,8 +100,11 @@ How it differs from Docker and Podman:
 - **db1's SSH port** is reached through `kubectl port-forward`, which
   `runtime.sh` starts and stops.
 - **`kubectl exec` has no `--user`**: commands run as the image's user, so
-  `ansible_user` has no effect on `kubernetes.core.kubectl`.
-- **The pod is named by `ansible_kubectl_pod`**, not `ansible_host`.
+  `ansible_user` has no effect on `kubernetes.core.kubectl`. In CI, app1
+  landed as `root`, not `appuser`.
+- **The pod is named by `ansible_kubectl_pod`**, not `ansible_host`: 04's
+  `-e ansible_host=app1`, which breaks the Docker and Podman connections,
+  still reached the pod.
 
 ## 4. Windows with WSL2
 
