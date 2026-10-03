@@ -28,6 +28,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`20-inventory-cache-performance/`](20-inventory-cache-performance/) | [Item 20: The inventory cache for speed, request counts and timeouts](https://til.housni.eu/ansible/inventory-cache-performance.html) |
 | [`21-add-host/`](21-add-host/) | [Item 21: add_host, provision then configure in one run](https://til.housni.eu/ansible/inventory-add-host-provision-then-configure.html) |
 | [`22-group-by/`](22-group-by/) | [Item 22: Groups from facts with group_by](https://til.housni.eu/ansible/inventory-group-by.html) |
+| [`23-writing-an-inventory-plugin/`](23-writing-an-inventory-plugin/) | [Item 23: Writing an inventory plugin, after the trust order](https://til.housni.eu/ansible/inventory-writing-a-plugin-trust-order.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -60,6 +61,7 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | requests (Python) | 2.34.2 | 16, 17, 18, 20 | in the same virtualenv, from `requirements.txt`; the Foreman and Proxmox inventory plugins import it |
+| pytest (Python) | 9.1.1 | 23 | in the same virtualenv, from `requirements.txt`; runs the plugin's unit tests |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
 | theforeman.foreman | 5.13.0 | 16 | `requirements.yml`, installed into `collections/` (below) |
 | jq | 1.7 | 03, 08, 09, 10, 16, 18 | your distribution's `jq` package |
@@ -82,12 +84,12 @@ python3.12 -m venv .venv
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
 - **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 14, 21 and 22
-  connect to every host locally. 15 to 20 start their own mock APIs, small
-  Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160,
-  Proxmox VE on 18170, 18180 and 18200, a CMDB on 18190), and stop them when
-  they end. 04 and 07 start their targets as Docker containers on the local
-  machine, from images pinned by digest, and 04 generates an SSH key pair for
-  each run in its `out/` directory.
+  connect to every host locally. 15 to 20 and 23 start their own mock APIs,
+  small Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on
+  18160, Proxmox VE on 18170, 18180 and 18200, CMDBs on 18190 and 18230), and
+  stop them when they end. 04 and 07 start their targets as Docker containers
+  on the local machine, from images pinned by digest, and 04 generates an SSH
+  key pair for each run in its `out/` directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 

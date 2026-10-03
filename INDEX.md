@@ -213,6 +213,19 @@ its output with the example's `expected.txt`.
 | Keep fact values with spaces or dashes out of group names | `regex_replace('\\W', '_')` on the value | `22-group-by/group-by.yml` |
 | Have the same groups at parse time, usable with `--limit` | constructed's `keyed_groups` over cached facts | `22-group-by/keyed/constructed.yml` |
 
+## Writing an inventory plugin
+
+| Problem | Feature | Where |
+|---|---|---|
+| See which inventory plugins are already installed before writing one | `ansible-doc -t inventory -l` | `23-writing-an-inventory-plugin/run.sh` |
+| Read an HTTP/JSON source without writing a plugin | an inventory script, then `ansible.builtin.constructed` in the same inventory directory | `23-writing-an-inventory-plugin/nocode/inventory/` |
+| Ship an inventory plugin so `ansible-inventory` and playbooks both find it | a collection (`galaxy.yml`, `plugins/inventory/`), `collections_path` | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/` |
+| Give a plugin `compose`, `groups` and `keyed_groups` | `Constructable` and the `ansible.builtin.constructed` fragment | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/plugins/inventory/cmdb.py` |
+| Take a plugin option from the environment | `env:` under the option in `DOCUMENTATION` | `23-writing-an-inventory-plugin/pitfalls/env-only.cmdb.yml` |
+| Report a source error clearly | raise `AnsibleParserError` with the URL and the cause | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/plugins/inventory/cmdb.py` |
+| Fail on an undefined variable in `keyed_groups` | `strict: true` | `23-writing-an-inventory-plugin/pitfalls/rack-strict.cmdb.yml` |
+| Read a plugin's options and their environment variables | `ansible-doc -t inventory <fqcn> --json` | `23-writing-an-inventory-plugin/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -433,6 +446,11 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - `--limit` can't name a group `group_by` builds, and with `--limit` only the
   limited hosts are grouped; the groups are gone after the run
   (`22-group-by/run.sh`).
+- A required plugin option set to an empty string passes Ansible's
+  `required` check: the plugin has to reject it itself
+  (`23-writing-an-inventory-plugin/run.sh`).
+- `keyed_groups` on a missing field silently makes no group unless
+  `strict: true` (`23-writing-an-inventory-plugin/pitfalls/rack.cmdb.yml`).
 
 ## Testing patterns worth reusing
 
@@ -461,3 +479,5 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Expire a cache without waiting | `touch -d '2 hours ago'` on the cache file | `20-inventory-cache-performance/run.sh` |
 | Show which hosts each play reached | each play writes one file per host in `out/`, `run.sh` lists them | `21-add-host/run.sh` |
 | Give local hosts different facts | recorded facts copied into a `jsonfile` fact cache with `fact_caching_timeout = 0` | `22-group-by/facts/`, `ansible.cfg` |
+| Unit-test an inventory plugin without a server | pytest, `unittest.mock.patch` on `open_url`, `inventory_loader.get()` with a `conftest.py` that sets up the collection loader | `23-writing-an-inventory-plugin/collections/ansible_collections/example/cmdb/tests/unit/` |
+| Test a token-protected API | a mock that answers 401 without the test-only token and logs whether each request had it | `23-writing-an-inventory-plugin/mock/cmdb.py` |
