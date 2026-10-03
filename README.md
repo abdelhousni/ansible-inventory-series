@@ -14,6 +14,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`06-ansible-inventory/`](06-ansible-inventory/) | [Item 6: Checking what Ansible sees with ansible-inventory](https://til.housni.eu/ansible/inventory-checking-with-ansible-inventory.html) |
 | [`07-facts-or-variables/`](07-facts-or-variables/) | [Item 7: Facts or variables, as-is against to-be](https://til.housni.eu/ansible/inventory-facts-or-variables-as-is-to-be.html) |
 | [`08-where-variables-live/`](08-where-variables-live/) | [Item 8: Where a variable should live](https://til.housni.eu/ansible/inventory-where-a-variable-should-live.html) |
+| [`09-inventory-precedence/`](09-inventory-precedence/) | [Item 9: Inventory precedence, depth and ansible_group_priority](https://til.housni.eu/ansible/inventory-precedence-depth-and-group-priority.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -46,7 +47,7 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
-| jq | 1.7 | 03, 08 | your distribution's `jq` package |
+| jq | 1.7 | 03, 08, 09 | your distribution's `jq` package |
 | OpenSSH client | 9.6 | 04 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
 

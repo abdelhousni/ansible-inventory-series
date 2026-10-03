@@ -81,6 +81,15 @@ its output with the example's `expected.txt`.
 | Move settings out of a playbook | play `vars:`, `set_fact` and `-e` replaced by defaults and inventory variables | `08-where-variables-live/messy/` → `tidy/` |
 | Guard a dangerous step with an extra var | a default `false` switch, turned on with `-e` for one run, tested with `\| bool` | `08-where-variables-live/roles/pgconf/` |
 
+## Inventory precedence
+
+| To… | Use | Where |
+|---|---|---|
+| Know which inventory level wins | host, then the deepest group, then groups of the same depth by name (`ansible_group_priority` first), then `all` | `09-inventory-precedence/levels/` |
+| Break a tie between groups at the same depth | `ansible_group_priority` in the hosts file | `09-inventory-precedence/priority/same-depth/` |
+| Find which group gave a host its value | `ansible-inventory --graph --vars`: the group's own value is listed after its hosts, the host's merged value nested under the host | `09-inventory-precedence/conflict/before/` |
+| Let a group win over a deeper one | move it to the same depth, then give it `ansible_group_priority` | `09-inventory-precedence/conflict/restructured/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -120,6 +129,11 @@ Each of these is shown, with its output in the example's `expected.txt`:
   `group_vars/` is never read (`08-where-variables-live/adjacent/`).
 - A role's `vars/main.yml` beats every inventory variable; only `-e` overrides
   it (`08-where-variables-live/roles/pgconf_constants/`).
+- `ansible_group_priority` doesn't beat a deeper group: groups sort by depth
+  first (`09-inventory-precedence/priority/across-depths/`,
+  `conflict/priority-only/`).
+- A dict set at two inventory levels is replaced, not merged
+  (`09-inventory-precedence/levels/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
 - In one inventory holding both environments, `hosts: app` runs on prod and

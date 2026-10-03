@@ -1,0 +1,3 @@
+---
+# the host
+postgresql_max_connections: 50

@@ -1,0 +1,5 @@
+---
+# depth 1, the parent
+postgresql_max_connections: 20
+postgresql_conf:
+  max_connections: 200
