@@ -1,0 +1,28 @@
+searching the repository for postgresql_password:
+  alias: group_vars/postgresql/vars.yml
+  no-alias: 
+
+ansible-inventory --host db1, without the vault password:
+  alias: exit 4, Attempting to decrypt but no vault secrets found
+  no-alias: exit 4, Attempting to decrypt but no vault secrets found
+  inline: exit 0, postgresql_password is an encrypted blob (__ansible_vault)
+
+ansible-inventory --host db1, with the vault password:
+  alias: keys postgresql_password, postgresql_port, vault_postgresql_password; the secret is in clear
+  no-alias: keys postgresql_password, postgresql_port; the secret is in clear
+  inline: keys postgresql_password, postgresql_port; the secret is not in clear
+
+a playbook using postgresql_password (alias):
+  careless task: the secret is in clear
+  no_log task: ok: [db1], the secret is not in clear
+
+changing the password, then rekeying:
+  vault.yml: 6 of 7 lines changed for a one-value change
+  after rekey: 6 of 7 lines changed, value unchanged
+  inline: line 3 holds the encrypted value; the lines around it stay plaintext
+
+vault IDs: prod and staging encrypted with different passwords
+  headers: $ANSIBLE_VAULT;1.2;AES256;prod $ANSIBLE_VAULT;1.2;AES256;staging
+  both passwords: exit 0
+  prod password, --limit prod: exit 0
+  prod password, all hosts: exit 4, Decryption failed (no vault secrets were found that could decrypt)

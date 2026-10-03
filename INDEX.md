@@ -90,6 +90,16 @@ its output with the example's `expected.txt`.
 | Find which group gave a host its value | `ansible-inventory --graph --vars`: the group's own value is listed after its hosts, the host's merged value nested under the host | `09-inventory-precedence/conflict/before/` |
 | Let a group win over a deeper one | move it to the same depth, then give it `ansible_group_priority` | `09-inventory-precedence/conflict/restructured/` |
 
+## Secrets
+
+| To… | Use | Where |
+|---|---|---|
+| Keep a secret in the inventory and still find where it's used | `vars.yml` with `name: "{{ vault_name }}"` next to an encrypted `vault.yml` | `10-secrets-in-the-inventory/alias/inventory/group_vars/postgresql/` |
+| Encrypt one value inside a plaintext file | `ansible-vault encrypt_string … --name <var>` | `10-secrets-in-the-inventory/inline/` |
+| Keep secrets out of task output | `no_log: true` on the task that uses them | `10-secrets-in-the-inventory/use.yml` |
+| Use different passwords per environment | `ansible-vault encrypt --vault-id prod@file`, then `--vault-id` per ID | `10-secrets-in-the-inventory/vault-ids/` |
+| Change a vault password | `ansible-vault rekey --new-vault-password-file` | `10-secrets-in-the-inventory/run.sh` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -134,6 +144,15 @@ Each of these is shown, with its output in the example's `expected.txt`:
   `conflict/priority-only/`).
 - A dict set at two inventory levels is replaced, not merged
   (`09-inventory-precedence/levels/`).
+- Without aliases, a secret's variable name exists only inside the encrypted
+  file: `grep` can't find it (`10-secrets-in-the-inventory/no-alias/`).
+- `ansible-inventory --host` with the vault password prints an encrypted
+  file's secrets in clear; inline `!vault` values stay encrypted
+  (`10-secrets-in-the-inventory/`).
+- Changing one value in an encrypted file, or rekeying it, rewrites every line
+  but the header in `git diff` (`10-secrets-in-the-inventory/run.sh`).
+- A missing `--vault-id` password fails the whole run unless `--limit` keeps to
+  hosts whose files can be decrypted (`10-secrets-in-the-inventory/vault-ids/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
 - In one inventory holding both environments, `hosts: app` runs on prod and
@@ -180,6 +199,7 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test an inventory without any server | every host with `ansible_connection: local` | `01-…`, `02-…` |
 | Test SSH and container connections in CI | an sshd container on `127.0.0.1:2222`, a key pair generated per run | `04-connection-variables/run.sh`, `containers/Containerfile` |
 | Keep machine-specific names out of `expected.txt` | compare a fact with the controller's own value, print a fixed label | `04-connection-variables/whoami.yml` |
+| Run vault examples anywhere, CI included | test-only vault passwords committed and named as such, dummy data only | `10-secrets-in-the-inventory/vault-pass/` |
 | Show a wrong layout next to the right one | a small inventory per pitfall, printed with `ansible-inventory --host` | `02-inventory-directory/pitfalls/` |
 | Test drift against real package databases | one container per version, built from images pinned by digest | `07-facts-or-variables/containers/` |
 | Overlay a wrong inventory on the right one | a second `-i` source that adds one variable | `07-facts-or-variables/run.sh`, `pitfalls/` |
