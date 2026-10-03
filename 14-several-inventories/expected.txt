@@ -1,0 +1,61 @@
+== 1. One directory, a static file and an executable script
+  inventory/10-prod.yml (yaml)
+  inventory/20-staging.py (script)
+@all:
+  |--@ungrouped:
+  |--@app:
+  |  |--app1
+  |  |--app2
+  |  |--stg-app1
+  |--@db:
+  |  |--db1
+  |  |--stg-db1
+  |--@prod:
+  |  |--app1
+  |  |--app2
+  |  |--db1
+  |--@staging:
+  |  |--stg-app1
+  |  |--stg-db1
+
+== 2. What the directory holds, and what Ansible skipped (silently, even at -vvv)
+  10-prod.yml
+  20-staging.py
+  README.md
+  notes.txt
+  old-run.retry
+
+== 3. The same group and host in two sources: the last loaded wins, key by key
+  conflicts/10-hosts.yml (yaml)
+  conflicts/20-override.yml (yaml)
+  app1:     app_port=9090, app_workers=4
+  db1:      pg_max_connections=200, pg_version=15
+  db1 groups and inventory_file: db,prod, 10-hosts.yml
+
+== 4. File names sort as text: 9-override.yml loads after 10-hosts.yml
+  name-order/10-hosts.yml (yaml)
+  name-order/9-override.yml (yaml)
+  db1:      pg_max_connections=200, pg_version=15
+
+== 5. Separate -i options load in the order given
+  db1:      pg_max_connections=200, pg_version=15
+  db1:      pg_max_connections=100, pg_version=15
+
+== 6. Two directories with -i: each one's group_vars/ applies to every host
+  -i environments/prod -i environments/staging
+  app1:     app_replicas=3, env=staging
+  stg-app1: app_replicas=3, env=staging
+  -i environments/staging -i environments/prod
+  app1:     app_replicas=3, env=prod
+  stg-app1: app_replicas=3, env=prod
+
+== 7. A script without the execute bit
+  warning: Unable to parse 20-staging.py as an inventory source
+  staging hosts: 0
+
+== 8. A README without an extension in the inventory directory
+  exit 0
+  Failed to parse inventory with 'yaml' plugin: YAML parsing failed: Mapping values are not allowed in this context
+  Failed to parse inventory with 'ini' plugin: Failed to parse inventory: Expected key=value host variable assignment, got: directory
+  hosts still loaded: app1 app2 db1
+  with ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true: exit 1

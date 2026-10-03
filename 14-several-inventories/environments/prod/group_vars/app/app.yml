@@ -1,0 +1,3 @@
+---
+# Meant for the prod app hosts.
+app_replicas: 3

@@ -1,0 +1,4 @@
+---
+# Every host runs locally: the example needs no server.
+ansible_connection: local
+ansible_python_interpreter: "{{ ansible_playbook_python }}"

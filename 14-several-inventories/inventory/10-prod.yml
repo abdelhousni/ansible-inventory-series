@@ -1,0 +1,16 @@
+---
+# The prod hosts, static. No variables here: they live in group_vars/.
+all:
+  children:
+    app:
+      hosts:
+        app1:
+        app2:
+    db:
+      hosts:
+        db1:
+    prod:
+      hosts:
+        app1:
+        app2:
+        db1:
