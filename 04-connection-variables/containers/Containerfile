@@ -1,0 +1,11 @@
+# The image behind db1 and app1: Python for Ansible's modules, sshd for db1,
+# and one user for each host.
+FROM docker.io/library/python:3.12-slim@sha256:dddfd7e07f9d15aeeca61529320492139d21cac7f0070c00609243e51e4e0016
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssh-server \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /run/sshd \
+    && useradd --create-home --shell /bin/bash dbadmin \
+    && useradd --create-home --shell /bin/bash appuser \
+    && sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
+CMD ["/usr/sbin/sshd", "-D", "-e"]

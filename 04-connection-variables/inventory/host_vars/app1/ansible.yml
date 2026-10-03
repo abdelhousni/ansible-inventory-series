@@ -1,0 +1,9 @@
+---
+# app1 is a container reached through the Docker API, with no SSH. For this
+# connection plugin, ansible_host is the container's name and ansible_user a
+# user inside it.
+ansible_connection: community.docker.docker
+ansible_host: inv04-app1
+ansible_user: appuser
+# The image's Python, named so Ansible doesn't have to discover it.
+ansible_python_interpreter: /usr/local/bin/python3.12

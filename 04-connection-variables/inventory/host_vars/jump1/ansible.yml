@@ -1,0 +1,4 @@
+---
+# jump1 stands for the controller itself: no network at all.
+ansible_connection: local
+ansible_python_interpreter: "{{ ansible_playbook_python }}"

@@ -1,0 +1,36 @@
+---
+# Connects to every host and records, from inside it, which user and which
+# machine Ansible ended up on, next to the connection variables that took it
+# there. Writes out/whoami.txt.
+- name: Record where each connection lands
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Gather the user and machine facts
+      ansible.builtin.setup:
+        gather_subset:
+          - "!all"
+          - "!min"
+          - user
+          - platform
+
+    - name: Write out/whoami.txt
+      ansible.builtin.copy:
+        dest: out/whoami.txt
+        mode: "0644"
+        content: |
+          {% for host in ansible_play_hosts_all | sort %}
+          {{ host }}:
+            connection: {{ hostvars[host].ansible_connection }}
+            ansible_host: {{ hostvars[host].ansible_host | default('(not set)') }}
+            ansible_port: {{ hostvars[host].ansible_port | default('(not set)') }}
+            ansible_user: {{ hostvars[host].ansible_user | default('(not set)') }}
+            landed as: {{ "the controller's own user, on the controller"
+              if hostvars[host].ansible_facts.hostname == whoami_controller
+              else hostvars[host].ansible_facts.user_id ~ ' on ' ~ hostvars[host].ansible_facts.hostname }}
+          {% endfor %}
+      delegate_to: jump1
+      run_once: true
+      vars:
+        # The controller's user and name vary between machines: name them.
+        whoami_controller: "{{ lookup('ansible.builtin.pipe', 'hostname -s') }}"
