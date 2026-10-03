@@ -27,6 +27,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`19-inventory-cache-stale-data/`](19-inventory-cache-stale-data/) | [Item 19: When the inventory cache lies: stale hosts, cache_timeout and --flush-cache](https://til.housni.eu/ansible/inventory-cache-stale-data.html) |
 | [`20-inventory-cache-performance/`](20-inventory-cache-performance/) | [Item 20: The inventory cache for speed, request counts and timeouts](https://til.housni.eu/ansible/inventory-cache-performance.html) |
 | [`21-add-host/`](21-add-host/) | [Item 21: add_host, provision then configure in one run](https://til.housni.eu/ansible/inventory-add-host-provision-then-configure.html) |
+| [`22-group-by/`](22-group-by/) | [Item 22: Groups from facts with group_by](https://til.housni.eu/ansible/inventory-group-by.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -80,7 +81,7 @@ python3.12 -m venv .venv
 - **`collections/`** is next to the examples, and each example's
   `ansible.cfg` points at it, so nothing is installed in your home
   directory.
-- **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 14 and 21
+- **No server is needed.** Examples 01 to 03, 05 to 06, 11 to 14, 21 and 22
   connect to every host locally. 15 to 20 start their own mock APIs, small
   Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman on 18160,
   Proxmox VE on 18170, 18180 and 18200, a CMDB on 18190), and stop them when

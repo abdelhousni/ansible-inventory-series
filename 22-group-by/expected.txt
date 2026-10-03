@@ -1,0 +1,71 @@
+== 1. The facts, recorded in the fact cache (lb2 has none)
+  db1: ansible_distribution=Rocky, ansible_distribution_major_version=9, ansible_os_family=RedHat
+  db2: ansible_distribution=AlmaLinux, ansible_distribution_major_version=9, ansible_os_family=RedHat
+  lb1: ansible_distribution=openSUSE Leap, ansible_distribution_major_version=15, ansible_os_family=Suse
+  web1: ansible_distribution=Ubuntu, ansible_distribution_major_version=24, ansible_os_family=Debian
+  web2: ansible_distribution=Debian, ansible_distribution_major_version=12, ansible_os_family=Debian
+
+== 2. group-by.yml on every host
+  exit 0
+  groups of each host after group_by:
+    db1: by_os db os_RedHat rocky9
+    db2: almalinux9 by_os db os_RedHat
+    lb1: by_os lb opensuse_leap15 os_Suse
+    lb2: by_os lb os_unknown unknown
+    web1: by_os os_Debian ubuntu24 web
+    web2: by_os debian12 os_Debian web
+  package_manager, from group_vars/os_<family>/, before and after group_by:
+    db1: undefined -> dnf
+    db2: undefined -> dnf
+    lb1: undefined -> zypper
+    lb2: undefined -> undefined
+    web1: undefined -> apt
+    web2: undefined -> apt
+  play on os_RedHat ran on: db1 db2
+
+== 3. --limit web1,db1: only the limited hosts are grouped
+  exit 0
+  groups of each host after group_by:
+    db1: by_os db os_RedHat rocky9
+    web1: by_os os_Debian ubuntu24 web
+  package_manager, from group_vars/os_<family>/, before and after group_by:
+    db1: undefined -> dnf
+    web1: undefined -> apt
+  play on os_RedHat ran on: db1
+  --limit os_RedHat: the group doesn't exist when the limit is read
+  exit 1
+  [WARNING]: Could not match supplied host pattern, ignoring: os_RedHat
+  [ERROR]: Specified inventory, host pattern and/or --limit leaves us with no hosts to target.
+
+== 4. After the run: no os_ group, no package_manager
+  os_ groups in ansible-inventory --graph: 0
+  ansible-inventory --host db1 has package_manager: 0
+
+== 5. A key with a space, as the distribution openSUSE Leap has
+  group_by reports: distro_openSUSE-Leap
+  group_names: "distro_openSUSE Leap"
+  [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
+  [WARNING]: Could not match supplied host pattern, ignoring: distro_openSUSE-Leap
+  skipping: no hosts matched
+
+== 6. A key with no default: lb2, without facts, fails and leaves the run
+  exit 2
+  fatal: [lb2]: FAILED
+  hosts that ran the second play, with their groups:
+    db1: db os_RedHat
+    db2: db os_RedHat
+    lb1: lb os_Suse
+    web1: os_Debian web
+    web2: os_Debian web
+
+== 7. The same groups from constructed's keyed_groups, when the inventory is parsed
+  @by_os:
+    |--@os_Debian:
+    |  |--web1
+    |  |--web2
+    |--@os_RedHat:
+    |  |--db1
+    |  |--db2
+    |--@os_Suse:
+    |  |--lb1
+  os_RedHat, usable as a pattern or a --limit: db1 db2

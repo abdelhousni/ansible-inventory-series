@@ -203,6 +203,16 @@ its output with the example's `expected.txt`.
 | Give a group created by `add_host` its variables | `group_vars/<group>/` in the inventory: it applies to the added hosts | `21-add-host/inventory/group_vars/web/` |
 | Add one host per host of the play | `add_host` with a `loop`, over `groups['<group>']` | `21-add-host/pitfalls/once-per-play/add.yml` |
 
+## Groups built during a run
+
+| To… | Use | Where |
+|---|---|---|
+| Put hosts in a group named after a fact, during the play | `group_by: key: os_{{ ansible_facts.os_family }}` | `22-group-by/group-by.yml` |
+| Nest the groups group_by builds | `parents:` on `group_by` | `22-group-by/group-by.yml` |
+| Give a dynamic group its variables | `group_vars/<group>/` in the inventory; they apply from the next task | `22-group-by/inventory/group_vars/` |
+| Keep fact values with spaces or dashes out of group names | `regex_replace('\\W', '_')` on the value | `22-group-by/group-by.yml` |
+| Have the same groups at parse time, usable with `--limit` | constructed's `keyed_groups` over cached facts | `22-group-by/keyed/constructed.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -415,6 +425,14 @@ Each of these is shown, with its output in the example's `expected.txt`:
   `--limit` naming only them fails with exit 1 (`21-add-host/run.sh`).
 - `add_host` leaves nothing behind: `ansible-inventory` and the next run
   don't see the added hosts (`21-add-host/run.sh`).
+- `group_by` keeps a space in the group name in ansible-core 2.21.4, though
+  its docs and its result say dash: the group can't be targeted
+  (`22-group-by/pitfalls/spaces.yml`).
+- A host whose `group_by` key fails is in no group and leaves the run
+  (`22-group-by/pitfalls/no-default.yml`).
+- `--limit` can't name a group `group_by` builds, and with `--limit` only the
+  limited hosts are grouped; the groups are gone after the run
+  (`22-group-by/run.sh`).
 
 ## Testing patterns worth reusing
 
@@ -442,3 +460,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test a large inventory without a large fixture in Git | a script generating the mock's responses at each run | `20-inventory-cache-performance/mock/generate.py` |
 | Expire a cache without waiting | `touch -d '2 hours ago'` on the cache file | `20-inventory-cache-performance/run.sh` |
 | Show which hosts each play reached | each play writes one file per host in `out/`, `run.sh` lists them | `21-add-host/run.sh` |
+| Give local hosts different facts | recorded facts copied into a `jsonfile` fact cache with `fact_caching_timeout = 0` | `22-group-by/facts/`, `ansible.cfg` |

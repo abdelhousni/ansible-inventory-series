@@ -1,0 +1,9 @@
+---
+# Builds the same os_ groups as group-by.yml, when the inventory is parsed,
+# from the facts in the fact cache.
+plugin: ansible.builtin.constructed
+strict: false
+keyed_groups:
+  - key: ansible_os_family
+    prefix: os
+    parent_group: by_os
