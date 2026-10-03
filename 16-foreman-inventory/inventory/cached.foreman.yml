@@ -1,0 +1,12 @@
+---
+# The Hosts API with parameters, cached as JSON in out/cache for an hour.
+plugin: theforeman.foreman.foreman
+url: http://127.0.0.1:18160
+use_reports_api: false
+want_params: true
+hostnames:
+  - name.split('.')[0]
+cache: true
+cache_plugin: ansible.builtin.jsonfile
+cache_connection: out/cache
+cache_timeout: 3600

@@ -139,6 +139,17 @@ its output with the example's `expected.txt`.
 | Refresh a cached inventory | `--flush-cache` | `15-single-source-of-truth/run.sh` |
 | Fail when a source can't be read, rather than run on an empty inventory | `ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED=true`, or `[inventory] any_unparsed_is_failed` | `15-single-source-of-truth/run.sh` |
 
+## Foreman and Satellite
+
+| Problem | Feature | Where |
+|---|---|---|
+| Take the hosts from Foreman or Satellite | `theforeman.foreman.foreman` in a file ending in `foreman.yml`, loaded by `auto` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Keep the Foreman password out of the source file | `FOREMAN_USER` and `FOREMAN_PASSWORD` in the environment | `16-foreman-inventory/run.sh` |
+| Get Foreman's host parameters as variables | `want_params: true`; with `legacy_hostvars: true`, a `foreman_params` dict, looped over with `dict2items` | `16-foreman-inventory/inventory/`, `params.yml` |
+| Groups by location with the Hosts API | `keyed_groups` on `foreman_location_name` | `16-foreman-inventory/inventory/hosts-api.foreman.yml` |
+| Short host names instead of FQDNs | `hostnames: [name.split('.')[0]]` | `16-foreman-inventory/inventory/` |
+| Stop asking Foreman on every run | `cache: true` with `cache_plugin: ansible.builtin.jsonfile`; `--flush-cache` to ask again | `16-foreman-inventory/inventory/cached.foreman.yml` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -280,6 +291,22 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - A `README` with no extension in an inventory directory only warns and the
   other sources load, unlike in `group_vars/`
   (`14-several-inventories/pitfalls/readme/`).
+- The Foreman plugin's Hosts API makes no location or organization groups,
+  only host groups; the Reports API makes both (`16-foreman-inventory/run.sh`).
+- Without a cache, the Foreman plugin asks for each host separately, twice
+  when both `want_params` and `want_hostcollections` are set, and facts take
+  two requests per host: 13 requests for 3 hosts (`16-foreman-inventory/run.sh`).
+- `--limit` doesn't reduce what the Foreman plugin fetches: it reads every
+  host, then the limit applies (`16-foreman-inventory/run.sh`).
+- A host collection named *Web servers* gives `foreman_hostcollection_webservers`
+  through the Hosts API and `foreman_hostcollection_web_servers` through the
+  Reports API (`16-foreman-inventory/run.sh`).
+- The default Reports API against a Foreman without `foreman_ansible` only
+  warns: `ansible-inventory` exits 0 with no hosts
+  (`16-foreman-inventory/pitfalls/no-foreman-ansible.foreman.yml`).
+- A Foreman source whose name doesn't end in `foreman.yml` or `foreman.yaml`
+  is skipped with warnings, and the inventory is empty
+  (`16-foreman-inventory/pitfalls/foreman-inventory.yml`).
 
 ## Testing patterns worth reusing
 
@@ -299,3 +326,4 @@ Each of these is shown, with its output in the example's `expected.txt`:
 | Test an inventory plugin or script without a real API | `python3 -m http.server` serving a JSON fixture, started and stopped by `run.sh` | `15-single-source-of-truth/run.sh` |
 | Show parallelism without flaky timings | a one-second `wait_for` per host, durations printed as a range | `13-inventory-is-the-loop/run.sh` |
 | Print the order Ansible parsed sources in, without absolute paths | `-vvv` output filtered with `sed` on *Parsed … inventory source* | `14-several-inventories/run.sh` |
+| Test an API-backed inventory plugin without the service | a Python server answering recorded JSON, logging each request; `run.sh` starts and stops it | `16-foreman-inventory/mock/foreman.py`, `run.sh` |
