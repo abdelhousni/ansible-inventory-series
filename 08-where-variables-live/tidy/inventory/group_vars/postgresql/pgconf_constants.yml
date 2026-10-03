@@ -1,0 +1,2 @@
+---
+pgconf_constants_max_connections: 300

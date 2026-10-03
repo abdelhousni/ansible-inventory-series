@@ -1,0 +1,3 @@
+---
+# Desired state for every PostgreSQL server.
+pgconf_max_connections: 200

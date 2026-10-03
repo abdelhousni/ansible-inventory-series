@@ -72,6 +72,15 @@ its output with the example's `expected.txt`.
 | See only the inventory's own host variables, never cached facts | `ansible-inventory --host <host> --export` | `07-facts-or-variables/run.sh` |
 | Stop facts from overriding inventory variables of the same name | `inject_facts_as_vars = False`, or `ANSIBLE_INJECT_FACT_VARS=false` | `07-facts-or-variables/run.sh` |
 
+## Where variables live
+
+| To… | Use | Where |
+|---|---|---|
+| Give a role setting a value everyone may override | `defaults/main.yml` in the role | `08-where-variables-live/roles/pgconf/defaults/main.yml` |
+| Set the desired state for a group, or for one host | `group_vars/<group>/<role>.yml`, `host_vars/<host>/<role>.yml` | `08-where-variables-live/tidy/inventory/` |
+| Move settings out of a playbook | play `vars:`, `set_fact` and `-e` replaced by defaults and inventory variables | `08-where-variables-live/messy/` → `tidy/` |
+| Guard a dangerous step with an extra var | a default `false` switch, turned on with `-e` for one run, tested with `\| bool` | `08-where-variables-live/roles/pgconf/` |
+
 ## Pitfalls recorded
 
 Each of these is shown, with its output in the example's `expected.txt`:
@@ -102,6 +111,12 @@ Each of these is shown, with its output in the example's `expected.txt`:
   the host, and the error says *Failed to create temporary directory*
   (`04-connection-variables/`).
 - The local connection ignores `ansible_user` (`04-connection-variables/`).
+- A play's `vars:` beat `group_vars`: the inventory says 300, the host gets
+  the play's 200 (`08-where-variables-live/messy/`).
+- Settings in a playbook or on the command line are invisible to
+  `ansible-inventory --host` (`08-where-variables-live/messy/`).
+- A role's `vars/main.yml` beats every inventory variable; only `-e` overrides
+  it (`08-where-variables-live/roles/pgconf_constants/`).
 - A file without an extension, such as `README`, is parsed as YAML, and the
   error doesn't name it (`02-inventory-directory/pitfalls/readme-without-extension/`).
 - In one inventory holding both environments, `hosts: app` runs on prod and

@@ -1,0 +1,3 @@
+---
+# Desired state for db1 only.
+pgconf_shared_buffers: 1GB

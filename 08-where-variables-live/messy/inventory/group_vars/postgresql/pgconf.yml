@@ -1,0 +1,3 @@
+---
+# Someone tries to fix max_connections in the inventory: play vars still win.
+pgconf_max_connections: 300

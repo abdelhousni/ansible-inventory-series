@@ -1,0 +1,19 @@
+messy, with group_vars/postgresql setting max_connections to 300:
+  ansible-playbook -i messy/inventory messy/site.yml -e pgconf_port=5433
+  db1.conf: port = 5433 max_connections = 200 shared_buffers = 1GB
+  db2.conf: port = 5433 max_connections = 200 shared_buffers = 128MB
+  what the inventory says about db1: {"pgconf_max_connections":300}
+
+tidy: ansible-playbook -i tidy/inventory tidy/site.yml
+  db1.conf: port = 5432 max_connections = 200 shared_buffers = 1GB
+  db2.conf: port = 5432 max_connections = 200 shared_buffers = 128MB
+  what the inventory says about db1: {"pgconf_constants_max_connections":300,"pgconf_max_connections":200,"pgconf_shared_buffers":"1GB"}
+  restart skipped: pgconf_allow_restart is false
+
+tidy, with the safety switch: -e pgconf_allow_restart=true
+  restart allowed
+
+a role with max_connections in vars/, group_vars/postgresql sets 300:
+  db1: max_connections = 50
+  what the inventory says about db1: {"pgconf_constants_max_connections":300}
+  db1 with -e pgconf_constants_max_connections=400: max_connections = 400
