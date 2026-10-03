@@ -9,7 +9,7 @@ Example for [item 2](https://til.housni.eu/ansible/inventory-directory-group-var
 inventory/
 ├── hosts.yml
 └── group_vars/
-    ├── all/connection.yml
+    ├── all/ansible.yml
     ├── app/podman.yml
     ├── backup/backup.yml
     └── postgresql/postgresql.yml
