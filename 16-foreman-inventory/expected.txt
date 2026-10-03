@@ -1,0 +1,158 @@
+== 1. The Hosts API: host groups, keyed_groups, groups
+  requests to Foreman: 13
+    1x GET /api/v2/hosts/1/facts?page=1&per_page=250
+    1x GET /api/v2/hosts/1/facts?page=2&per_page=250
+    2x GET /api/v2/hosts/1?page=1&per_page=250
+    1x GET /api/v2/hosts/2/facts?page=1&per_page=250
+    1x GET /api/v2/hosts/2/facts?page=2&per_page=250
+    2x GET /api/v2/hosts/2?page=1&per_page=250
+    1x GET /api/v2/hosts/3/facts?page=1&per_page=250
+    1x GET /api/v2/hosts/3/facts?page=2&per_page=250
+    2x GET /api/v2/hosts/3?page=1&per_page=250
+    1x GET /api/v2/hosts?page=1&per_page=250
+  @all:
+    |--@ungrouped:
+    |--@foreman_base:
+    |  |--@foreman_base_web:
+    |  |  |--web1
+    |  |  |--web2
+    |  |--@foreman_base_db:
+    |  |  |--db1
+    |--@foreman_hostcollection_webservers:
+    |  |--web1
+    |  |--web2
+    |--@foreman_hostcollection_patchtuesday:
+    |  |--web1
+    |  |--db1
+    |--@location_brussels:
+    |  |--web1
+    |  |--db1
+    |--@tier_frontend:
+    |  |--web1
+    |  |--web2
+    |--@location_paris:
+    |  |--web2
+    |--@postgresql:
+    |  |--db1
+    |--@tier_backend:
+    |  |--db1
+
+== 2. web1's variables: Foreman's fields prefixed, parameters as they are, facts in foreman_facts
+  {
+      "ansible_host": "192.0.2.11",
+      "app_port": 8080,
+      "foreman_environment_name": null,
+      "foreman_facts": {
+          "os::family": "RedHat",
+          "os::release::full": "9.6",
+          "processorcount": "2"
+      },
+      "foreman_hostgroup_id": 2,
+      "foreman_id": 1,
+      "foreman_ip": "192.0.2.11",
+      "foreman_location_id": 1,
+      "foreman_location_name": "Brussels",
+      "foreman_operatingsystem_name": "RedHat 9.6",
+      "foreman_organization_id": 1,
+      "foreman_organization_name": "Acme",
+      "ntp_server": "ntp.brussels.example.com",
+      "tier": "frontend"
+  }
+
+== 3. legacy_hostvars: Foreman's fields in one dict, the parameters in another, groups prefixed fm_
+  requests to Foreman: 4
+    1x GET /api/v2/hosts/1?page=1&per_page=250
+    1x GET /api/v2/hosts/2?page=1&per_page=250
+    1x GET /api/v2/hosts/3?page=1&per_page=250
+    1x GET /api/v2/hosts?page=1&per_page=250
+  @all:
+    |--@ungrouped:
+    |--@fm_base:
+    |  |--@fm_base_web:
+    |  |  |--web1
+    |  |  |--web2
+    |  |--@fm_base_db:
+    |  |  |--db1
+  db1's top-level variables: foreman, foreman_params
+  params.yml --limit db1, foreman_params | dict2items:
+    ntp_server=ntp.brussels.example.com
+    db_engine=postgresql
+    tier=backend
+  --limit db1 still asked Foreman for every host:
+  requests to Foreman: 4
+    1x GET /api/v2/hosts/1?page=1&per_page=250
+    1x GET /api/v2/hosts/2?page=1&per_page=250
+    1x GET /api/v2/hosts/3?page=1&per_page=250
+    1x GET /api/v2/hosts?page=1&per_page=250
+
+== 4. The Reports API: one report, groups for location, organization and content
+  requests to Foreman: 3
+    1x GET /ansible/api/v2/ansible_inventories/9d0c3c4e
+    1x GET /api/v2/status?page=1&per_page=250
+    1x POST /ansible/api/v2/ansible_inventories/schedule
+  @all:
+    |--@ungrouped:
+    |--@foreman_base:
+    |  |--@foreman_base_web:
+    |  |  |--web1
+    |  |  |--web2
+    |  |--@foreman_base_db:
+    |  |  |--db1
+    |--@foreman_location_brussels:
+    |  |--web1
+    |  |--db1
+    |--@foreman_organization_acme:
+    |  |--web1
+    |  |--web2
+    |  |--db1
+    |--@foreman_lifecycle_environment_production:
+    |  |--web1
+    |  |--web2
+    |  |--db1
+    |--@foreman_content_view_rhel9:
+    |  |--web1
+    |  |--web2
+    |  |--db1
+    |--@foreman_hostcollection_web_servers:
+    |  |--web1
+    |  |--web2
+    |--@foreman_hostcollection_patch_tuesday:
+    |  |--web1
+    |  |--db1
+    |--@foreman_location_paris:
+    |  |--web2
+
+== 5. The cache: the second run makes no request, --flush-cache asks again
+  requests to Foreman: 4
+    1x GET /api/v2/hosts/1?page=1&per_page=250
+    1x GET /api/v2/hosts/2?page=1&per_page=250
+    1x GET /api/v2/hosts/3?page=1&per_page=250
+    1x GET /api/v2/hosts?page=1&per_page=250
+  the cache file holds Foreman's answers, by URL:
+    http://127.0.0.1:18160/api/v2/hosts
+    http://127.0.0.1:18160/api/v2/hosts/1
+    http://127.0.0.1:18160/api/v2/hosts/2
+    http://127.0.0.1:18160/api/v2/hosts/3
+  requests to Foreman: 0
+  same graph from the cache
+  requests to Foreman: 4
+    1x GET /api/v2/hosts/1?page=1&per_page=250
+    1x GET /api/v2/hosts/2?page=1&per_page=250
+    1x GET /api/v2/hosts/3?page=1&per_page=250
+    1x GET /api/v2/hosts?page=1&per_page=250
+
+== 6. Pitfall: the Reports API on a Foreman without foreman_ansible
+  requests to Foreman: 2
+    1x GET /plain/api/v2/status?page=1&per_page=250
+    1x POST /plain/ansible/api/v2/ansible_inventories/schedule
+  [WARNING]: Failed to parse inventory with 'auto' plugin: Error scheduling inventory report on foreman. Please check foreman logs!
+  [WARNING]: No inventory was parsed, only implicit localhost is available
+  @all:
+    |--@ungrouped:
+
+== 7. Pitfall: a file name that doesn't end in foreman.yml
+  requests to Foreman: 0
+  [WARNING]: Failed to parse inventory with 'auto' plugin: inventory source 'pitfalls/foreman-inventory.yml' could not be verified by inventory plugin 'theforeman.foreman.foreman'
+  [WARNING]: No inventory was parsed, only implicit localhost is available
+  @all:
+    |--@ungrouped:

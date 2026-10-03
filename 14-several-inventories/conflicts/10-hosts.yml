@@ -1,0 +1,17 @@
+---
+# Two sources that disagree, on purpose: this one and 20-override.yml set the
+# same group and host variables. The rest of the series keeps variables in
+# group_vars/ and host_vars/; here they sit in the sources to show which wins.
+all:
+  children:
+    app:
+      hosts:
+        app1:
+      vars:
+        app_port: 8080
+        app_workers: 4
+    db:
+      hosts:
+        db1:
+          pg_version: 15
+          pg_max_connections: 100

@@ -1,0 +1,15 @@
+---
+# Named 9- to load first, so that 10-hosts.yml wins. It doesn't: names sort as
+# text, "10-hosts.yml" before "9-override.yml", so this file loads last.
+all:
+  children:
+    app:
+      vars:
+        app_port: 9090
+    db:
+      hosts:
+        db1:
+          pg_max_connections: 200
+    prod:
+      hosts:
+        db1:

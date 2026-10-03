@@ -1,0 +1,8 @@
+---
+- name: Print each host's owner from the CMDB
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Print the owner
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} belongs to {{ cmdb_owner }}"

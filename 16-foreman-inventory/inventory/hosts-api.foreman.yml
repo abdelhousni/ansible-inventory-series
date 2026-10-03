@@ -1,0 +1,20 @@
+---
+# The Hosts API, which every Foreman and Satellite has. The user and password
+# come from FOREMAN_USER and FOREMAN_PASSWORD, set by run.sh.
+plugin: theforeman.foreman.foreman
+url: http://127.0.0.1:18160
+use_reports_api: false
+want_params: true
+want_facts: true
+want_hostcollections: true
+hostnames:
+  - name.split('.')[0]
+compose:
+  ansible_host: foreman_ip
+keyed_groups:
+  - key: foreman_location_name | lower
+    prefix: location
+  - key: tier
+    prefix: tier
+groups:
+  postgresql: db_engine is defined and db_engine == 'postgresql'
