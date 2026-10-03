@@ -1,0 +1,4 @@
+---
+# Read by the backup role, for every host of the backup group.
+backup_schedule: daily
+backup_keep: 7

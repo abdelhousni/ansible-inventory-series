@@ -7,6 +7,11 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | Directory | Entry |
 |---|---|
 | [`01-hosts-and-groups/`](01-hosts-and-groups/) | [Item 1: Hosts, groups, and the all and ungrouped groups](https://til.housni.eu/ansible/inventory-hosts-groups-all-ungrouped.html) |
+| [`02-inventory-directory/`](02-inventory-directory/) | [Item 2: An inventory as a directory, with group_vars per role](https://til.housni.eu/ansible/inventory-directory-group-vars-per-role.html) |
+
+Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
+each problem to the feature that solves it and the file that shows it, with
+the pitfalls each example records.
 
 ## Running them
 

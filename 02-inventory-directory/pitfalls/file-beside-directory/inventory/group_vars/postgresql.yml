@@ -1,0 +1,4 @@
+---
+# Never read: group_vars/postgresql/ exists, and Ansible stops at it.
+postgresql_server_conf:
+  port: 5432

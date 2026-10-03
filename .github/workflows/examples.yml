@@ -26,6 +26,13 @@ jobs:
             --exclude-newer 2026-10-01T00:00:00Z --generate-hashes \
             -o requirements.txt --quiet
           git diff --exit-code -- requirements.txt
+      - name: INDEX.md mentions every example
+        run: |
+          status=0
+          for dir in [0-9][0-9]-*/; do
+            grep -q "${dir%/}" INDEX.md || { echo "INDEX.md: no row for ${dir%/}"; status=1; }
+          done
+          exit $status
 
   example:
     runs-on: ubuntu-24.04
@@ -34,6 +41,7 @@ jobs:
       matrix:
         example:
           - 01-hosts-and-groups
+          - 02-inventory-directory
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

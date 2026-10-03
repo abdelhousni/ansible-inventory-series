@@ -1,0 +1,41 @@
+app1:
+  podman_firewall: [{"port": "8080/tcp", "state": "enabled"}]
+  podman_registries_conf: {"unqualified-search-registries": ["registry.example.org"]}
+app2:
+  podman_firewall: [{"port": "8080/tcp", "state": "enabled"}]
+  podman_registries_conf: {"unqualified-search-registries": ["registry.example.org"]}
+app3:
+  podman_firewall: [{"port": "8080/tcp", "state": "enabled"}]
+  podman_registries_conf: {"unqualified-search-registries": ["registry.example.org"]}
+db1:
+  backup_keep: 7
+  backup_schedule: "daily"
+  postgresql_server_conf: {"port": 5432, "max_connections": 200}
+  postgresql_version: "16"
+jump1:
+  (no role variables)
+
+pitfalls/file-beside-directory, db1:
+  {
+      "postgresql_version": "16"
+  }
+
+pitfalls/misspelled-group, db1:
+  {}
+
+pitfalls/file-order, db1:
+  {
+      "postgresql_version": "16"
+  }
+
+pitfalls/skipped-files, db1:
+  {
+      "postgresql_server_conf": {
+          "shared_buffers": "1GB"
+      },
+      "postgresql_version": "16"
+  }
+
+pitfalls/readme-without-extension, db1:
+  failed, exit 4:
+  [ERROR]: YAML parsing failed: Mapping values are not allowed in this context.
