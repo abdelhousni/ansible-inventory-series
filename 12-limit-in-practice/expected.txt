@@ -1,0 +1,91 @@
+== 1. --limit applies to every play
+  hosts: db, --limit app: none, and ad hoc ansible exits 1
+  hosts: app, --limit app: app1 app2 stg-app1
+
+$ ansible-playbook site.yml
+PLAY [Configure the databases]
+    db play on db1 stg-db1
+PLAY [Deploy the application, two hosts at a time]
+    app1 in batch app1 app2
+    app2 in batch app1 app2
+    run_once ran on app1
+PLAY [Deploy the application, two hosts at a time]
+    stg-app1 in batch stg-app1
+    run_once ran on stg-app1
+
+$ ansible-playbook site.yml --limit app
+PLAY [Configure the databases]
+skipping: no hosts matched
+PLAY [Deploy the application, two hosts at a time]
+    app1 in batch app1 app2
+    app2 in batch app1 app2
+    run_once ran on app1
+PLAY [Deploy the application, two hosts at a time]
+    stg-app1 in batch stg-app1
+    run_once ran on stg-app1
+
+== 2. run_once runs once per serial batch
+
+$ ansible-playbook site.yml --limit app:!app2
+PLAY [Configure the databases]
+skipping: no hosts matched
+PLAY [Deploy the application, two hosts at a time]
+    app1 in batch app1 stg-app1
+    stg-app1 in batch app1 stg-app1
+    run_once ran on app1
+
+== 3. Facts of hosts outside the limit
+
+$ ansible-playbook facts.yml
+PLAY [Gather facts on the databases]
+PLAY [Read db1 from the app hosts]
+    ansible_limit: not set
+    groups.db: db1 stg-db1
+    db1 env, an inventory variable: prod
+    db1 system, a fact: Linux
+
+$ ansible-playbook facts.yml --limit app
+PLAY [Gather facts on the databases]
+skipping: no hosts matched
+PLAY [Read db1 from the app hosts]
+    ansible_limit: app
+    groups.db: db1 stg-db1
+    db1 env, an inventory variable: prod
+    db1 system, a fact: missing
+
+== 4. Two ways to get them back
+-- gather them from the play that needs them, delegate_facts: true
+
+$ ansible-playbook delegate-facts.yml --limit app1
+PLAY [Read db1 from the app hosts]
+    db1 system, a fact: Linux
+-- or keep facts from an earlier run in a fact cache
+
+$ ansible-playbook facts.yml --limit app
+PLAY [Gather facts on the databases]
+skipping: no hosts matched
+PLAY [Read db1 from the app hosts]
+    ansible_limit: app
+    groups.db: db1 stg-db1
+    db1 env, an inventory variable: prod
+    db1 system, a fact: Linux
+
+== 5. Matching nothing
+
+$ ansible-playbook site.yml --limit dbs
+exit 1
+[WARNING]: Could not match supplied host pattern, ignoring: dbs
+[ERROR]: Specified inventory, host pattern and/or --limit leaves us with no hosts to target.
+
+$ ansible-playbook site.yml --limit app1,ap2
+[WARNING]: Could not match supplied host pattern, ignoring: ap2
+PLAY [Configure the databases]
+skipping: no hosts matched
+PLAY [Deploy the application, two hosts at a time]
+    app1 in batch app1
+    run_once ran on app1
+
+$ ansible-playbook nothing.yml
+[WARNING]: Could not match supplied host pattern, ignoring: dbs
+PLAY [Target a group that doesn't exist]
+skipping: no hosts matched

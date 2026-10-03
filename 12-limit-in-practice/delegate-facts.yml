@@ -1,0 +1,20 @@
+---
+# Gathers the db hosts' facts from the app play, so they exist even when
+# --limit leaves the db hosts out.
+- name: Read db1 from the app hosts
+  hosts: app
+  gather_facts: false
+  tasks:
+    - name: Gather facts of every db host
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups.db }}"
+      run_once: true
+
+    - name: Print db1's system fact
+      ansible.builtin.debug:
+        msg: "db1 system, a fact: {{ hostvars.db1.ansible_facts.system | default('missing') }}"
+      run_once: true

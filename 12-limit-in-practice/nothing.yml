@@ -1,0 +1,8 @@
+---
+- name: Target a group that doesn't exist
+  hosts: dbs
+  gather_facts: false
+  tasks:
+    - name: Print a message no host reaches
+      ansible.builtin.debug:
+        msg: unreachable

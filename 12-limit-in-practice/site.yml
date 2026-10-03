@@ -1,0 +1,24 @@
+---
+# Two plays, as in a real site playbook: --limit applies to both.
+- name: Configure the databases
+  hosts: db
+  gather_facts: false
+  tasks:
+    - name: Print the hosts the play reached
+      ansible.builtin.debug:
+        msg: "db play on {{ ansible_play_hosts_all | join(' ') }}"
+      run_once: true
+
+- name: Deploy the application, two hosts at a time
+  hosts: app
+  gather_facts: false
+  serial: 2
+  tasks:
+    - name: Print the batch
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} in batch {{ ansible_play_batch | join(' ') }}"
+
+    - name: Run once
+      ansible.builtin.debug:
+        msg: "run_once ran on {{ inventory_hostname }}"
+      run_once: true

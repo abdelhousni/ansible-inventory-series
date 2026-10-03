@@ -1,0 +1,21 @@
+---
+# app hosts read db1's facts, as a pg_hba.conf or a connection string would.
+- name: Gather facts on the databases
+  hosts: db
+  gather_facts: true
+  gather_subset:
+    - min
+  tasks: []
+
+- name: Read db1 from the app hosts
+  hosts: app
+  gather_facts: false
+  tasks:
+    - name: Print what app1 knows about db1
+      ansible.builtin.debug:
+        msg:
+          - "ansible_limit: {{ ansible_limit | default('not set') }}"
+          - "groups.db: {{ groups.db | join(' ') }}"
+          - "db1 env, an inventory variable: {{ hostvars.db1.env }}"
+          - "db1 system, a fact: {{ hostvars.db1.ansible_facts.system | default('missing') }}"
+      run_once: true
