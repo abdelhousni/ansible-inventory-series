@@ -1,0 +1,33 @@
+levels: postgresql_max_connections for db1, removing the winning level each time
+  db1: 50   (next removed: host_vars/db1)
+  db1: 30   (next removed: group_vars/db)
+  db1: 20   (next removed: group_vars/postgresql)
+  db1: 40   (next removed: group_vars/backup)
+  db1: 10   (all only)
+  db2, no host_vars: 30
+
+a dict set in all and in postgresql:
+  postgresql_conf for db2: {"max_connections":200}
+
+ansible_group_priority: 10 on backup (depth 1)
+  against postgresql, same depth:  40
+  against db, depth 2:             30
+
+conflict: db1 is in backup, which needs postgresql_wal_level: replica
+  before: db1 "minimal", db2 "minimal"
+  priority-only: db1 "minimal", db2 "minimal"
+  restructured: db1 "replica", db2 "minimal"
+  ansible-inventory --graph --vars, before:
+    @all:
+      |--@ungrouped:
+      |--@postgresql:
+      |  |--@db:
+      |  |  |--db1
+      |  |  |  |--{postgresql_wal_level = minimal}
+      |  |  |--db2
+      |  |  |  |--{postgresql_wal_level = minimal}
+      |  |  |--{postgresql_wal_level = minimal}
+      |--@backup:
+      |  |--db1
+      |  |  |--{postgresql_wal_level = minimal}
+      |  |--{postgresql_wal_level = replica}

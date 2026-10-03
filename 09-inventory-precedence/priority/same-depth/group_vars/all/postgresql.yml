@@ -1,0 +1,6 @@
+---
+# depth 0
+postgresql_max_connections: 10
+postgresql_conf:
+  max_connections: 100
+  shared_buffers: 128MB

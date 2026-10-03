@@ -1,0 +1,3 @@
+---
+# The default for database servers.
+postgresql_wal_level: minimal

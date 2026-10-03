@@ -1,0 +1,3 @@
+---
+# WAL archiving needs at least replica on every backed-up server.
+postgresql_wal_level: replica

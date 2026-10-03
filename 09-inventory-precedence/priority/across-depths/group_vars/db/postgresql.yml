@@ -1,0 +1,3 @@
+---
+# depth 2, the child
+postgresql_max_connections: 30
