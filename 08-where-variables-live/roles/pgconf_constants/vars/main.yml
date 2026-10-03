@@ -1,0 +1,4 @@
+---
+# A role variable in vars/: higher precedence than the whole inventory.
+# Here by mistake: it should be a default, or a __-prefixed constant.
+pgconf_constants_max_connections: 50

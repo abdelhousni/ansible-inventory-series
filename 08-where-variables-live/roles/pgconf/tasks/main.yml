@@ -1,0 +1,11 @@
+---
+- name: Render postgresql.conf for this host
+  ansible.builtin.template:
+    src: postgresql.conf.j2
+    dest: "{{ pgconf_output_dir }}/{{ inventory_hostname }}.conf"
+    mode: "0644"
+  delegate_to: localhost
+
+- name: Record whether a restart would be allowed
+  ansible.builtin.debug:
+    msg: "restart {{ 'allowed' if pgconf_allow_restart | bool else 'skipped: pgconf_allow_restart is false' }}"

@@ -1,0 +1,18 @@
+---
+# The messy version: the desired state lives in the playbook and on the
+# command line, where the inventory can't see it.
+- name: Configure PostgreSQL, settings scattered
+  hosts: postgresql
+  gather_facts: false
+  vars:
+    pgconf_output_dir: "{{ playbook_dir }}/../out/messy"
+    pgconf_max_connections: 200
+  tasks:
+    - name: Give db1 bigger buffers
+      ansible.builtin.set_fact:
+        pgconf_shared_buffers: 1GB
+      when: inventory_hostname == 'db1'
+
+    - name: Apply the role
+      ansible.builtin.include_role:
+        name: pgconf

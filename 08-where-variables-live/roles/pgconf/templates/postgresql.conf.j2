@@ -1,0 +1,5 @@
+{{ ansible_managed | comment }}
+# Rendered for {{ inventory_hostname }}
+port = {{ pgconf_port }}
+max_connections = {{ pgconf_max_connections }}
+shared_buffers = {{ pgconf_shared_buffers }}

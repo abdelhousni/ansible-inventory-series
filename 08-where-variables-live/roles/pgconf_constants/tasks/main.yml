@@ -1,0 +1,7 @@
+---
+- name: Record max_connections
+  ansible.builtin.copy:
+    dest: "{{ pgconf_output_dir }}/{{ inventory_hostname }}-constants.txt"
+    content: "max_connections = {{ pgconf_constants_max_connections }}\n"
+    mode: "0644"
+  delegate_to: localhost

@@ -1,0 +1,3 @@
+---
+# Inside the role: Ansible never reads group_vars/ here.
+pgconf_max_connections: 999

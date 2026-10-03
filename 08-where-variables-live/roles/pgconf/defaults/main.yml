@@ -1,0 +1,7 @@
+---
+# Defaults: the lowest precedence of all, meant to be overridden.
+pgconf_port: 5432
+pgconf_max_connections: 100
+pgconf_shared_buffers: 128MB
+# Safety switch, off unless an extra var turns it on for one run.
+pgconf_allow_restart: false
