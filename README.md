@@ -46,7 +46,7 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | Python | 3.12 | every example | your distribution's `python3.12`; ansible-core 2.21 needs 3.12 or newer |
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
-| jq | 1.7 | 03 | your distribution's `jq` package |
+| jq | 1.7 | 03, 08 | your distribution's `jq` package |
 | OpenSSH client | 9.6 | 04 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
 | Docker Engine | 29.6 | 04, 07 | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
 
