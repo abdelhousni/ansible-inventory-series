@@ -1,6 +1,6 @@
 # Lab runtimes: provisioning each one locally
 
-Examples 04 and 07 start their target hosts as containers. They run on
+Examples 04, 07 and 26 start their target hosts as containers. They run on
 Docker, Podman or a kind cluster, chosen with `LAB_RUNTIME` (see
 [`runtime.sh`](runtime.sh)). This page is the step-by-step setup for each
 one, so you can provision any of them when you need it. Every other example
@@ -125,7 +125,7 @@ the Windows file system.
 
 [`.github/workflows/examples.yml`](../.github/workflows/examples.yml):
 - **`example`** runs every example with Docker, the default.
-- **`runtime`** runs 04 and 07 with Podman, and with a kind cluster it
+- **`runtime`** runs 04, 07 and 26 with Podman, and with a kind cluster it
   creates from the pinned binaries above.
 
 ## Checking the setup
@@ -133,7 +133,7 @@ the Windows file system.
 `./lab/check.sh` lists the runtimes it finds, and the one selected:
 
 ```text
-Lab runtime for 04 and 07 (LAB_RUNTIME=auto):
+Lab runtime for 04, 07 and 26 (LAB_RUNTIME=auto):
   found    Docker 29.6.2
   found    Podman 4.9.3
   ok       selected: docker

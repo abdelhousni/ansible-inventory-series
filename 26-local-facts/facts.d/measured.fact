@@ -1,0 +1,5 @@
+#!/bin/sh
+# Measures the installed PostgreSQL client's major version and prints it as
+# JSON, the format facts.d expects from an executable.
+version=$(psql --version | sed -E 's/^[^0-9]* ([0-9]+)\..*/\1/')
+printf '{"server": {"version": "%s"}}\n' "$version"

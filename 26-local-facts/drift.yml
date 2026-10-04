@@ -1,0 +1,24 @@
+---
+# Compares the declared PostgreSQL version (to-be: postgresql_version) with
+# the one the host's local fact reports, and writes one line per host to the
+# report file. Changes nothing. The comparison is only as good as the fact.
+- name: Compare the declared PostgreSQL version with the local fact
+  hosts: postgresql
+  gather_facts: true
+  gather_subset:
+    - min
+  vars:
+    drift_report: out/drift.txt
+  tasks:
+    - name: Write the drift report
+      ansible.builtin.copy:
+        dest: "{{ drift_report }}"
+        mode: "0644"
+        content: |
+          {% for host in ansible_play_hosts_all | sort %}
+          {% set declared = hostvars[host].postgresql_version | string %}
+          {% set reported = hostvars[host].ansible_local.postgresql.server.version | default('none') %}
+          {{ host }}: declared {{ declared }}, local fact {{ reported }}: {{ 'ok' if reported == declared else 'drift' }}
+          {% endfor %}
+      delegate_to: localhost
+      run_once: true

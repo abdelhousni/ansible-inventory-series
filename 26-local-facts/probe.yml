@@ -1,0 +1,19 @@
+---
+# Writes what a play sees of db-typed's local fact, and whether a regular
+# fact is injected as a top-level variable, to the report file.
+- name: Show what a play sees of the local fact
+  hosts: db-typed
+  gather_facts: "{{ probe_gather_facts | default(true) }}"
+  gather_subset:
+    - min
+  vars:
+    probe_report: out/probe.txt
+  tasks:
+    - name: Write the probe report
+      ansible.builtin.copy:
+        dest: "{{ probe_report }}"
+        mode: "0644"
+        content: |
+          ansible_local.postgresql.server.version: {{ ansible_local.postgresql.server.version | default('undefined') }}
+          ansible_distribution (top level): {{ 'defined' if ansible_distribution is defined else 'undefined' }}
+      delegate_to: localhost

@@ -1,0 +1,5 @@
+---
+# A container reached through the Docker API.
+ansible_connection: community.docker.docker
+ansible_host: inv26-db-measured
+ansible_python_interpreter: /usr/bin/python3
