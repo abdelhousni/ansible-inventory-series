@@ -31,6 +31,7 @@ of the series, from hosts and groups to dynamic inventory plugins.
 | [`23-writing-an-inventory-plugin/`](23-writing-an-inventory-plugin/) | [Item 23: Writing an inventory plugin, after the trust order](https://til.housni.eu/ansible/inventory-writing-a-plugin-trust-order.html) |
 | [`24-inventory-in-aap/`](24-inventory-in-aap/) | [Item 24: Inventory in AAP: sources from a project, smart and constructed inventories](https://til.housni.eu/ansible/inventory-in-aap-sources-smart-constructed.html) |
 | [`25-testing-the-inventory-in-ci/`](25-testing-the-inventory-in-ci/) | [Item 25: Testing the inventory in CI, with a JSON Schema and policy checks](https://til.housni.eu/ansible/inventory-testing-in-ci-json-schema.html) |
+| [`26-local-facts/`](26-local-facts/) | [Item 26: Local facts, declared data that looks measured](https://til.housni.eu/ansible/inventory-local-facts-facts-d-risks.html) |
 
 Looking for a technique rather than an entry? [INDEX.md](INDEX.md) maps
 each problem to the feature that solves it and the file that shows it, with
@@ -47,9 +48,9 @@ PATH="$PWD/.venv/bin:$PATH" ./NN-name/run.sh
 
 Each example's `run.sh` prints what the entry says, and CI compares that
 output with the example's `expected.txt`. It writes only to the example's
-`out/` directory, except the Docker examples (04, 07), which also build
+`out/` directory, except the container examples (04, 07, 26), which also build
 images and start containers. They remove their containers when they end;
-the images stay, and `docker image rm inv04-target inv07-db1 inv07-db2`
+the images stay, and `docker image rm inv04-target inv07-db1 inv07-db2 inv26-pg15`
 removes them.
 
 ## Local lab
@@ -64,18 +65,18 @@ the setup the entries were tested with, on Ubuntu 24.04; GitHub's
 | ansible-core | 2.21.4 | every example | in a virtualenv, from the locked `requirements.txt` (below) |
 | requests (Python) | 2.34.2 | 16, 17, 18, 20 | in the same virtualenv, from `requirements.txt`; the Foreman and Proxmox inventory plugins import it |
 | pytest (Python) | 9.1.1 | 23 | in the same virtualenv, from `requirements.txt`; runs the plugin's unit tests |
-| community.docker | 5.3.0 | 04, 07 | `requirements.yml`, installed into `collections/` (below) |
+| community.docker | 5.3.0 | 04, 07, 26 | `requirements.yml`, installed into `collections/` (below) |
 | theforeman.foreman | 5.13.0 | 16 | `requirements.yml`, installed into `collections/` (below) |
 | jq | 1.7 | 03, 08, 09, 10, 16, 18, 24, 25 | your distribution's `jq` package |
 | community.general | 13.4.0 | 17 (the redirect pitfall) | `requirements.yml`, installed into `collections/` |
 | community.proxmox | 2.0.0 | 17, 18, 20 | `requirements.yml`, installed into `collections/` |
 | check-jsonschema | 0.38.2 | 25 | in the virtualenv, from the locked `requirements.txt` |
 | OpenSSH client | 9.6 | 04, 13 | `openssh-client` (Debian, Ubuntu) or `openssh-clients` (Fedora, RHEL) |
-| Docker Engine | 29.6 | 04, 07 (the default runtime), and to build images for kind | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
-| Podman | 4.9.3 | 04, 07 with `LAB_RUNTIME=podman` | your distribution's `podman` package |
-| containers.podman | 1.20.2 | 04, 07 with `LAB_RUNTIME=podman` | `requirements.yml`, installed into `collections/` |
-| kind and kubectl | 0.30.0 and 1.34.1 | 04, 07 with `LAB_RUNTIME=kubernetes` | the release binaries, then `kind create cluster --name lab` |
-| kubernetes.core | 6.6.0 | 04, 07 with `LAB_RUNTIME=kubernetes` | `requirements.yml`, installed into `collections/` |
+| Docker Engine | 29.6 | 04, 07, 26 (the default runtime), and to build images for kind | Docker Engine or Docker Desktop, with the daemon running and your user allowed to use it |
+| Podman | 4.9.3 | 04, 07, 26 with `LAB_RUNTIME=podman` | your distribution's `podman` package |
+| containers.podman | 1.20.2 | 04, 07, 26 with `LAB_RUNTIME=podman` | `requirements.yml`, installed into `collections/` |
+| kind and kubectl | 0.30.0 and 1.34.1 | 04, 07, 26 with `LAB_RUNTIME=kubernetes` | the release binaries, then `kind create cluster --name lab` |
+| kubernetes.core | 6.6.0 | 04, 07, 26 with `LAB_RUNTIME=kubernetes` | `requirements.yml`, installed into `collections/` |
 
 ```sh
 python3.12 -m venv .venv
@@ -94,16 +95,16 @@ python3.12 -m venv .venv
   and 25 connect to every host locally. 15 to 20 and 23 start their own mock
   APIs, small Python servers on `127.0.0.1` (a CMDB on port 18150, a Foreman
   on 18160, Proxmox VE on 18170, 18180 and 18200, CMDBs on 18190 and 18230),
-  and stop them when they end. 04 and 07 start their targets as containers on
-  the local machine (Docker, Podman or a kind cluster), from images pinned by
-  digest, and 04 generates an SSH key pair for each run in its `out/`
+  and stop them when they end. 04, 07 and 26 start their targets as containers
+  on the local machine (Docker, Podman or a kind cluster), from images pinned
+  by digest, and 04 generates an SSH key pair for each run in its `out/`
   directory.
 - **`lab/check.sh`** checks each line of the table and prints the command
   for whatever is missing. It changes nothing.
 
 Two things to know:
 
-- **04 and 07 run on Docker, Podman or Kubernetes.** They start their
+- **04, 07 and 26 run on Docker, Podman or Kubernetes.** They start their
   target hosts through `lab/runtime.sh`, which uses `LAB_RUNTIME` (`docker`,
   `podman` or `kubernetes`), or else the first of Docker and Podman that
   answers. With Podman or Kubernetes, the example adds the inventory overlay

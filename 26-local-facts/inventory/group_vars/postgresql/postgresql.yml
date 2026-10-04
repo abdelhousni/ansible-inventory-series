@@ -1,0 +1,3 @@
+---
+# The declared (to-be) major version.
+postgresql_version: 16

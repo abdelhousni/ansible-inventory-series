@@ -1,0 +1,3 @@
+---
+# With LAB_RUNTIME=podman: the same container, through the Podman CLI.
+ansible_connection: containers.podman.podman

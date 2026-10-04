@@ -57,9 +57,9 @@ fi
 command -v ssh >/dev/null && command -v ssh-keygen >/dev/null && ok "OpenSSH client (04, 13)" \
   || ko "OpenSSH client (04, 13)" "install openssh-client (Debian, Ubuntu) or openssh-clients (Fedora, RHEL)"
 
-# 04 and 07 start their target hosts with one runtime: LAB_RUNTIME, or the
+# 04, 07 and 26 start their target hosts with one runtime: LAB_RUNTIME, or the
 # first available (lab/runtime.sh). Only the selected one has to work.
-echo "Lab runtime for 04 and 07 (LAB_RUNTIME=${LAB_RUNTIME:-auto}):"
+echo "Lab runtime for 04, 07 and 26 (LAB_RUNTIME=${LAB_RUNTIME:-auto}):"
 runtimes=""
 if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
   runtimes="$runtimes docker"

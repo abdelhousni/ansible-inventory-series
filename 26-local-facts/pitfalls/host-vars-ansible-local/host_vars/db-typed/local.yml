@@ -1,0 +1,8 @@
+---
+# An inventory value with the name of the local facts: gathered facts win.
+# ansible-lint rejects it as a read-only special variable; it's kept here to
+# show what happens anyway.
+ansible_local:  # noqa: var-naming[read-only]
+  postgresql:
+    server:
+      version: "99"

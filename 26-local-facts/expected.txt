@@ -1,0 +1,33 @@
+== 1. Both hosts run PostgreSQL 15; the inventory declares 16
+  db-typed: 15
+  db-measured: 15
+The drift check, reading ansible_local:
+  db-measured: declared 16, local fact 15: drift
+  db-typed: declared 16, local fact 16: ok
+
+== 2. INI keys come back lowercased: the file says Version
+  3:Version=16
+  ansible_local.postgresql.server.version: 16
+  ansible_distribution (top level): defined
+
+== 3. ANSIBLE_INJECT_FACT_VARS=false: other facts leave the top level, ansible_local stays
+  ansible_local.postgresql.server.version: 16
+  ansible_distribution (top level): undefined
+
+== 4. host_vars sets ansible_local to 99, against the gathered fact
+  gathering facts:
+    ansible_local.postgresql.server.version: 16
+    ansible_distribution (top level): defined
+  gather_facts: false, empty fact cache:
+    ansible_local.postgresql.server.version: 99
+    ansible_distribution (top level): undefined
+
+== 5. The fact cache keeps a local fact after the file is deleted
+  ansible-inventory --host:          {'postgresql': {'server': {'version': '16'}}}
+  ansible-inventory --host --export: absent
+  a play with gather_facts: false:
+    ansible_local.postgresql.server.version: 16
+    ansible_distribution (top level): defined
+  a play that gathers facts:
+    ansible_local.postgresql.server.version: undefined
+    ansible_distribution (top level): defined

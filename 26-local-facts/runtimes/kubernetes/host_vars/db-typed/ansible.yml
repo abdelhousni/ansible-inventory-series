@@ -1,0 +1,4 @@
+---
+# With LAB_RUNTIME=kubernetes: a pod in the kind cluster, through kubectl exec.
+ansible_connection: kubernetes.core.kubectl
+ansible_kubectl_pod: inv26-db-typed

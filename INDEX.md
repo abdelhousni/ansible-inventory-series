@@ -246,6 +246,14 @@ its output with the example's `expected.txt`.
 | Check rules across groups (one environment per host, nothing ungrouped) | an `assert` playbook on localhost reading `groups` and `group_names` | `25-testing-the-inventory-in-ci/policy.yml` |
 | Run the checks on every pull request | a GitHub Actions job calling `check.sh` | `25-testing-the-inventory-in-ci/ci/inventory.yml` |
 
+## Local facts
+
+| Problem | Feature | Where |
+|---|---|---|
+| Add a custom fact that a play can trust | an executable `.fact` in `/etc/ansible/facts.d/` that measures and prints JSON | `26-local-facts/facts.d/measured.fact` |
+| Read a local fact | `ansible_local.<file>.<section>.<key>`, keys lowercased for INI | `26-local-facts/drift.yml` |
+| See what a cached fact still says, apart from the inventory | `ansible-inventory --host` against `--host --export` | `26-local-facts/run.sh` |
+
 ## Lab runtimes
 
 | Problem | Feature | Where |
@@ -501,6 +509,13 @@ Each of these is shown, with its output in the example's `expected.txt`:
 - With `kubernetes.core.kubectl`, `ansible_user` has no effect (app1 lands as
   root) and `ansible_host` doesn't name the pod: `ansible_kubectl_pod` does
   (`04-connection-variables/expected-kubernetes.txt`).
+- A hand-written local fact makes a drift check pass on a host that drifted:
+  it's declared data that looks measured (`26-local-facts/facts.d/typed.fact`).
+- `ansible_local` stays a top-level variable with
+  `INJECT_FACT_VARS=false`, and gathered facts override an `ansible_local` set in
+  `host_vars` (`26-local-facts/run.sh`).
+- The fact cache keeps a local fact after its file is deleted: `--host` and a play
+  with `gather_facts: false` still see it (`26-local-facts/run.sh`).
 
 ## Testing patterns worth reusing
 
